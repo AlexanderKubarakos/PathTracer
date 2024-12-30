@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "Material.h"
+#include <limits.h>
 
 void cameraSetup(Camera* c)
 {
