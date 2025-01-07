@@ -20,8 +20,8 @@ int main()
     Material* ground_material = (Material*)createLambertian((Color){0.5, 0.5, 0.5});
     addHittable(scene, createSphere((Vec3){0,-1000,0}, 1000, ground_material));
 
-    for (int a = -1; a < 1; a++) {
-        for (int b = -1; b < 1; b++) {
+    for (int a = -11; a < 11; a++) {
+        for (int b = -11; b < 11; b++) {
             double choose_mat = randomDouble();
             Vec3 center = (Vec3){a + 0.9*randomDouble(), 0.2, b + 0.9*randomDouble()};
 
@@ -58,19 +58,13 @@ int main()
     addHittable(scene,createSphere((Vec3){4, 1, 0}, 1.0, material3));
 
     // Create camera to render scenes
-    Camera* camera = createCamera(1080, 16.0/9.0, 500, 50, 20, 0.6, 10.0);
+    Camera* camera = createCamera(1080, 16.0/9.0, 50, 50, 20, 0.6, 10.0);
     lookAt(camera, (Vec3){13,2,3}, (Vec3){0,0,0}, (Vec3){0,1,0});
     renderScene(camera, scene);
 
     destroyCamera(camera);
     destroyScene(scene);
 
-    /*
-    destroyMaterial((Material*)lambertian1);
-    destroyMaterial((Material*)lambertian2);
-    destroyMaterial((Material*)dielectric);
-    destroyMaterial((Material*)metal2);
-    */
     printf("Finished\n");
     return 0;
 }

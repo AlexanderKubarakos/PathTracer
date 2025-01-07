@@ -7,6 +7,18 @@
 #include <stdio.h>
 #include "Material.h"
 #include <limits.h>
+#include <pthread.h>
+
+#define BLOCK_SIZE 32
+
+typedef struct {
+    int x;
+    int y;
+    Image* image;
+    Camera* camera;
+    Scene* scene;
+    double colorRatio;
+} Block;
 
 void cameraSetup(Camera* c)
 {
@@ -47,7 +59,7 @@ Camera* createCamera(int width, double aspectRatio, int sampleCount, int rayDept
     Camera* c = malloc(sizeof(Camera));
     if (!c)
     {
-        fprintf(stderr, "Failed to create camera\n");
+        printf("Failed to create camera\n");
         return c;
     }
     
@@ -128,11 +140,65 @@ Ray sampleRay(Camera* camera, int x, int y)
     return ray;
 }
 
+void* print(void* data)
+{
+    Block* block = (Block*)data;
+    for (int y = block->y; y < block->y + BLOCK_SIZE && y < block->image->height; y++)
+    {
+        for (int x = block->x; x < block->x + BLOCK_SIZE && x < block->image->width; x++)
+        {
+            Ray ray;
+            Color pixelColor = {0,0,0};
+            // Per sample
+            for (int i = 0; i < block->camera->sampleCount; i++)
+            {
+                // Get random ray
+                ray = sampleRay(block->camera, x, y);
+                // Sum their colors
+                pixelColor = addVec3(pixelColor, rayColor(block->scene, block->camera->rayDepth, ray));
+            }
+
+            pixelColor = mulVec3(pixelColor, block->colorRatio);
+            
+            setPixel(*block->image, x, y, pixelColor);
+        } 
+    }
+
+    return NULL;
+}
+
 void renderScene(Camera* camera, Scene* scene)
 {
+    pthread_t* threads = malloc(sizeof(*threads) * 1024);
     Image image = createImage(camera->width, camera->height);
     double colorRatio = 1.0 / camera->sampleCount;
+    int i = 0;
+    for (int y = 0; y < camera->height; y += BLOCK_SIZE)
+    {
+        for (int x = 0; x < camera->width; x += BLOCK_SIZE)
+        {
+            // 32x32 blocks
+            // Start a thread per
+            Block* block = malloc(sizeof(Block));
+            block->x = x;
+            block->y = y;
+            block->camera = camera;
+            block->scene = scene;
+            block->colorRatio = colorRatio;
+            block->image = &image;
+            pthread_create(threads + (i++), NULL, print, block);
+        }
+    }
+
+    for (int j = 0; j < i; j++)
+    {
+        pthread_join(threads[j], NULL);
+        if (j % 10 == 0)
+            printf("Remaining work... %.2f%%\n", (float)j*100/i);
+    }
+        
     // Compute Image Data
+    /*
     for (int y = 0; y < camera->height; y++)
     {
         if (y % (camera->height/10) == 0)
@@ -155,9 +221,9 @@ void renderScene(Camera* camera, Scene* scene)
             setPixel(image, x, y, pixelColor);
         } 
     }
-
-    fprintf(stderr, "Outputing image...\n");
-    outputImage(image, "output2.ppm");
+    */
+    printf("Outputing image...\n");
+    outputImage(image, "output.ppm");
     deleteImage(image);
 }
 

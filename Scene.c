@@ -8,13 +8,13 @@ Scene* createScene(int length)
     Scene* s = malloc(sizeof(Scene));
     if (!s)
     {
-        fprintf(stderr, "Failed to allocate memory for scene\n");
+        printf("Failed to allocate memory for scene\n");
     }
 
     s->hittableList = calloc(length, sizeof(Hittable*));
     if (!s->hittableList)
     {
-        fprintf(stderr, "Failed to allocate memory for scene hittable list\n");
+        printf("Failed to allocate memory for scene hittable list\n");
     }
 
     s->length = length;
@@ -38,7 +38,7 @@ void addHittable(Scene* scene, Hittable* hittable)
     if (scene->index == scene->length)
     {
         // List is full
-        fprintf(stderr, "Hittable list full");
+        printf("Hittable list full");
         return;
     }
 
