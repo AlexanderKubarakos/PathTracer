@@ -26,5 +26,5 @@ typedef struct
 
 Camera* createCamera(int width, double aspectRatio, int sampleCount, int rayDepth, double vfov, double defocusAngle, double focusDistance);
 void lookAt(Camera* camera, const Vec3 lookFrom, const Vec3 lookAt, const Vec3 up);
-void renderScene(Camera* camera, Scene* scene);
+void renderScene(Camera* camera, Scene* scene, int threadCount);
 void destroyCamera(Camera* camera);

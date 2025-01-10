@@ -8,17 +8,18 @@
 #include "Material.h"
 #include <limits.h>
 #include <pthread.h>
-
-#define BLOCK_SIZE 32
+#include <unistd.h>
+#include <time.h>
+#define TILE_SIZE 32
 
 typedef struct {
-    int x;
-    int y;
     Image* image;
     Camera* camera;
     Scene* scene;
     double colorRatio;
-} Block;
+    int nextTile;
+    pthread_mutex_t mutex;
+} RenderTarget;
 
 void cameraSetup(Camera* c)
 {
@@ -140,88 +141,99 @@ Ray sampleRay(Camera* camera, int x, int y)
     return ray;
 }
 
-void* print(void* data)
+void* renderTiles(void* data)
 {
-    Block* block = (Block*)data;
-    for (int y = block->y; y < block->y + BLOCK_SIZE && y < block->image->height; y++)
+    RenderTarget* target = (RenderTarget*)data;
+
+    Camera* camera = target->camera;
+    Image* image = target->image;
+    Scene* scene = target->scene;
+    double colorRatio = target->colorRatio;
+
+    int xTileAmmount = camera->width / TILE_SIZE + (camera->width % TILE_SIZE == 0 ? 0 : 1);
+    int yTileAmmount = camera->height / TILE_SIZE + (camera->height % TILE_SIZE == 0 ? 0 : 1);
+    while(true)
     {
-        for (int x = block->x; x < block->x + BLOCK_SIZE && x < block->image->width; x++)
+        pthread_mutex_lock(&target->mutex);
+        int tile = target->nextTile++;
+        pthread_mutex_unlock(&target->mutex);
+
+        if (tile >= xTileAmmount * yTileAmmount)
         {
-            Ray ray;
-            Color pixelColor = {0,0,0};
-            // Per sample
-            for (int i = 0; i < block->camera->sampleCount; i++)
+            return NULL;
+        }
+        int tileY = tile / xTileAmmount;
+        int tileX = tile % xTileAmmount;
+        for (int y = tileY * TILE_SIZE; y < tileY * TILE_SIZE + TILE_SIZE && y < image->height; y++)
+        {
+            for (int x = tileX * TILE_SIZE; x < tileX * TILE_SIZE + TILE_SIZE && x < image->width; x++)
             {
-                // Get random ray
-                ray = sampleRay(block->camera, x, y);
-                // Sum their colors
-                pixelColor = addVec3(pixelColor, rayColor(block->scene, block->camera->rayDepth, ray));
+                Ray ray;
+                Color pixelColor = {0,0,0};
+                // Per sample
+                for (int i = 0; i < camera->sampleCount; i++)
+                {
+                    // Get random ray
+                    ray = sampleRay(camera, x, y);
+                    // Sum their colors
+                    pixelColor = addVec3(pixelColor, rayColor(scene, camera->rayDepth, ray));
+                }
+
+                pixelColor = mulVec3(pixelColor, colorRatio);
+
+                setPixel(*image, x, y, pixelColor);
             }
-
-            pixelColor = mulVec3(pixelColor, block->colorRatio);
-            
-            setPixel(*block->image, x, y, pixelColor);
-        } 
+        }
     }
-
     return NULL;
 }
 
-void renderScene(Camera* camera, Scene* scene)
+void renderScene(Camera* camera, Scene* scene, int threadCount)
 {
-    pthread_t* threads = malloc(sizeof(*threads) * 1024);
+    pthread_t* threads = malloc(sizeof(*threads) * threadCount);
+    RenderTarget renderTarget;
     Image image = createImage(camera->width, camera->height);
     double colorRatio = 1.0 / camera->sampleCount;
-    int i = 0;
-    for (int y = 0; y < camera->height; y += BLOCK_SIZE)
+
+    renderTarget.camera = camera;
+    renderTarget.scene = scene;
+    renderTarget.colorRatio = colorRatio;
+    renderTarget.image = &image;
+    renderTarget.nextTile = 0;
+    pthread_mutex_init(&renderTarget.mutex, NULL);
+#if 1
+    for (int i = 0; i < threadCount; i++)
     {
-        for (int x = 0; x < camera->width; x += BLOCK_SIZE)
-        {
-            // 32x32 blocks
-            // Start a thread per
-            Block* block = malloc(sizeof(Block));
-            block->x = x;
-            block->y = y;
-            block->camera = camera;
-            block->scene = scene;
-            block->colorRatio = colorRatio;
-            block->image = &image;
-            pthread_create(threads + (i++), NULL, print, block);
-        }
+        pthread_create(&threads[i], NULL, renderTiles, &renderTarget);
     }
 
-    for (int j = 0; j < i; j++)
+    for (int i = 0; i < threadCount; i++)
     {
-        pthread_join(threads[j], NULL);
-        if (j % 10 == 0)
-            printf("Remaining work... %.2f%%\n", (float)j*100/i);
+        pthread_join(threads[i], NULL);
     }
-        
-    // Compute Image Data
-    /*
-    for (int y = 0; y < camera->height; y++)
-    {
-        if (y % (camera->height/10) == 0)
-            printf("Scan Line Progress: %i %%\n", 10*(y / (camera->height / 10)));
-        for (int x = 0; x < camera->width; x++)
+#else
+  for (int y = 0; y < camera->height; y++)
         {
-            Ray ray;
-            Color pixelColor = {0,0,0};
-            // Per sample
-            for (int i = 0; i < camera->sampleCount; i++)
+            for (int x = 0; x < camera->width; x++)
             {
-                // Get random ray
-                ray = sampleRay(camera, x, y);
-                // Sum their colors
-                pixelColor = addVec3(pixelColor, rayColor(scene, camera->rayDepth, ray));
-            }
+                Ray ray;
+                Color pixelColor = {0,0,0};
+                // Per sample
+                for (int i = 0; i < camera->sampleCount; i++)
+                {
+                    // Get random ray
+                    ray = sampleRay(camera, x, y);
+                    // Sum their colors
+                    pixelColor = addVec3(pixelColor, rayColor(scene, camera->rayDepth, ray));
+                }
 
-            pixelColor = mulVec3(pixelColor, colorRatio);
-            
-            setPixel(image, x, y, pixelColor);
-        } 
-    }
-    */
+                pixelColor = mulVec3(pixelColor, colorRatio);
+
+                setPixel(image, x, y, pixelColor);
+            }
+        }
+#endif
+
     printf("Outputing image...\n");
     outputImage(image, "output.ppm");
     deleteImage(image);
