@@ -12,6 +12,42 @@
 #include "Lambertian.h"
 #include "Metal.h"
 #include "Dielectric.h"
+#include "SDLWindow.h"
+void startSDL()
+{
+    SDL_Surface* surface = NULL;
+    SDL_Window* window = NULL;
+
+    if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+    {
+        printf("ERROR: SDL Init ");
+        printf("%s\n", SDL_GetError());
+        return;
+    }
+
+    window = SDL_CreateWindow("Example", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720,
+                            SDL_WINDOW_SHOWN);
+    if (!window)
+    {
+        printf("ERROR: Window Creation\n");
+        return;
+    }
+
+    surface = SDL_GetWindowSurface(window);
+
+    if (!surface)
+    {
+        printf("ERROR: Get Surface\n");
+        return;
+    }
+
+    // Fill the window with a white rectangle
+	SDL_FillRect( surface, NULL, SDL_MapRGB( surface->format, 255, 255, 255 ) );
+
+	// Update the window display
+	SDL_UpdateWindowSurface( window );
+}
+
 int main()
 {
     // Create scene of hittable objects
@@ -57,14 +93,26 @@ int main()
     Material* material3 = (Material*)createMetal((Color){0.7, 0.6, 0.5}, 0.0);
     addHittable(scene,createSphere((Vec3){4, 1, 0}, 1.0, material3));
 
+    SDLInit(SDL_INIT_EVERYTHING);
+    SDLWindow window;
+    if (!createWindow(&window))
+    {
+        return -1;
+    }
+	SDL_FillRect(getSDLSurface(&window), NULL, SDL_MapRGB( getSDLSurface(&window)->format, 255, 255, 255 ) );
+
+	// Update the window display
+	SDL_UpdateWindowSurface(getSDLWindow(&window));
+
     // Create camera to render scenes
-    Camera* camera = createCamera(500, 16.0/9.0, 50, 50, 20, 0.6, 10.0);
+    Camera* camera = createCamera(1000, 16.0/9.0, 300, 50, 20, 0.6, 10.0);
     lookAt(camera, (Vec3){13,2,3}, (Vec3){0,0,0}, (Vec3){0,1,0});
-    renderScene(camera, scene, 5);
+    renderScene(camera, scene, 6);
 
     printf("Cleaning up\n");
-    //destroyCamera(camera);
-    //destroyScene(scene);
+    destroyCamera(camera);
+    destroyScene(scene);
+    SDLQuit();
 
     printf("Finished\n");
     return 0;

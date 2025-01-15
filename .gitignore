@@ -1,5 +1,12 @@
 /build
 /.cache
+*.ppm
+callgrind*
+Makefile
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+RayTracer
 # Prerequisites
 *.d
 

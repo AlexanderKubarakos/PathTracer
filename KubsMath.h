@@ -13,11 +13,13 @@ static inline double degreeToRadian(double degree)
 {
     return degree * M_PI / 180.0;
 }
-static unsigned int popper = 0;
+
+static __thread unsigned int seed;
+
 // random double [0, 1)
 static inline double randomDouble()
 {
-    return rand_r(&popper) / (RAND_MAX + 1.0);
+   return rand_r(&seed) / (RAND_MAX + 1.0);
 }
 
 static inline double randomDoubleRange(double min, double max)

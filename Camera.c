@@ -10,15 +10,15 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <time.h>
-#define TILE_SIZE 32
+#define TILE_SIZE 64
 
+// Data passed to each thread, describes what to render and where
 typedef struct {
-    Image* image;
-    Camera* camera;
-    Scene* scene;
-    double colorRatio;
-    int nextTile;
-    pthread_mutex_t mutex;
+    Image* image; //image to draw too
+    Camera* camera; //camera to use in render
+    Scene* scene; //scene to hit against
+    int nextTile; //shared state for all threads, tells thread what tile to do next
+    pthread_mutex_t mutex; // mutex for nextTile mutal exclussion
 } RenderTarget;
 
 void cameraSetup(Camera* c)
@@ -148,20 +148,24 @@ void* renderTiles(void* data)
     Camera* camera = target->camera;
     Image* image = target->image;
     Scene* scene = target->scene;
-    double colorRatio = target->colorRatio;
+    double colorRatio = 1.0 / camera->sampleCount;
 
     int xTileAmmount = camera->width / TILE_SIZE + (camera->width % TILE_SIZE == 0 ? 0 : 1);
     int yTileAmmount = camera->height / TILE_SIZE + (camera->height % TILE_SIZE == 0 ? 0 : 1);
     while(true)
     {
+        // pull new tile
         pthread_mutex_lock(&target->mutex);
         int tile = target->nextTile++;
         pthread_mutex_unlock(&target->mutex);
 
+        // if this tile is out of bounds, we have finished our work
         if (tile >= xTileAmmount * yTileAmmount)
         {
             return NULL;
         }
+
+        // Get the top let corner of the tile
         int tileY = tile / xTileAmmount;
         int tileX = tile % xTileAmmount;
         for (int y = tileY * TILE_SIZE; y < tileY * TILE_SIZE + TILE_SIZE && y < image->height; y++)
@@ -180,9 +184,14 @@ void* renderTiles(void* data)
                 }
 
                 pixelColor = mulVec3(pixelColor, colorRatio);
-
                 setPixel(*image, x, y, pixelColor);
             }
+        }
+
+        // print progress
+        if (tile % 4 == 0 && tile != 0)
+        {
+            printf("Progress %.2f%%\n", (float)tile/xTileAmmount/yTileAmmount * 100.0f);
         }
     }
     return NULL;
@@ -193,15 +202,13 @@ void renderScene(Camera* camera, Scene* scene, int threadCount)
     pthread_t* threads = malloc(sizeof(*threads) * threadCount);
     RenderTarget renderTarget;
     Image image = createImage(camera->width, camera->height);
-    double colorRatio = 1.0 / camera->sampleCount;
 
     renderTarget.camera = camera;
     renderTarget.scene = scene;
-    renderTarget.colorRatio = colorRatio;
     renderTarget.image = &image;
     renderTarget.nextTile = 0;
     pthread_mutex_init(&renderTarget.mutex, NULL);
-#if 1
+
     for (int i = 0; i < threadCount; i++)
     {
         pthread_create(&threads[i], NULL, renderTiles, &renderTarget);
@@ -211,28 +218,6 @@ void renderScene(Camera* camera, Scene* scene, int threadCount)
     {
         pthread_join(threads[i], NULL);
     }
-#else
-  for (int y = 0; y < camera->height; y++)
-        {
-            for (int x = 0; x < camera->width; x++)
-            {
-                Ray ray;
-                Color pixelColor = {0,0,0};
-                // Per sample
-                for (int i = 0; i < camera->sampleCount; i++)
-                {
-                    // Get random ray
-                    ray = sampleRay(camera, x, y);
-                    // Sum their colors
-                    pixelColor = addVec3(pixelColor, rayColor(scene, camera->rayDepth, ray));
-                }
-
-                pixelColor = mulVec3(pixelColor, colorRatio);
-
-                setPixel(image, x, y, pixelColor);
-            }
-        }
-#endif
 
     printf("Outputing image...\n");
     outputImage(image, "output.ppm");
