@@ -12,11 +12,16 @@
 #include <time.h>
 #define TILE_SIZE 64
 
+typedef struct {
+    Image* image;
+    bool done;
+} RenderResult;
 // Data passed to each thread, describes what to render and where
 typedef struct {
     Image* image; //image to draw too
     Camera* camera; //camera to use in render
     Scene* scene; //scene to hit against
+    bool done;
     int nextTile; //shared state for all threads, tells thread what tile to do next
     pthread_mutex_t mutex; // mutex for nextTile mutal exclussion
 } RenderTarget;
@@ -184,7 +189,7 @@ void* renderTiles(void* data)
                 }
 
                 pixelColor = mulVec3(pixelColor, colorRatio);
-                setPixel(*image, x, y, pixelColor);
+                setPixel(image, x, y, &pixelColor);
             }
         }
 
@@ -197,8 +202,19 @@ void* renderTiles(void* data)
     return NULL;
 }
 
-void renderScene(Camera* camera, Scene* scene, int threadCount)
+typedef struct
 {
+    Camera* camera;
+    Scene* scene;
+    int threadCount;
+} RenderSceneData;
+
+void* renderSceneThreaded(void* arg)
+{
+    RenderSceneData* data = (RenderSceneData*)arg;
+    Camera* camera = data->camera;
+    Scene* scene = data->scene;
+    int threadCount = data->threadCount;
     pthread_t* threads = malloc(sizeof(*threads) * threadCount);
     RenderTarget renderTarget;
     Image image = createImage(camera->width, camera->height);
@@ -220,8 +236,20 @@ void renderScene(Camera* camera, Scene* scene, int threadCount)
     }
 
     printf("Outputing image...\n");
-    outputImage(image, "output.ppm");
+    outputImage(&image, "output.ppm");
     deleteImage(image);
+    free(arg);
+    return NULL;
+}
+
+void renderScene(Camera* camera, Scene* scene, int threadCount)
+{
+    pthread_t thread;
+    RenderSceneData* data = malloc(sizeof(*data));
+    data->camera = camera;
+    data->scene = scene;
+    data->threadCount = threadCount;
+    pthread_create(&thread, NULL, renderSceneThreaded, data);
 }
 
 void destroyCamera(Camera* camera)

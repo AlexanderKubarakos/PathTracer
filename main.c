@@ -101,14 +101,24 @@ int main()
     }
 	SDL_FillRect(getSDLSurface(&window), NULL, SDL_MapRGB( getSDLSurface(&window)->format, 255, 255, 255 ) );
 
-	// Update the window display
-	SDL_UpdateWindowSurface(getSDLWindow(&window));
-
     // Create camera to render scenes
     Camera* camera = createCamera(1000, 16.0/9.0, 300, 50, 20, 0.6, 10.0);
     lookAt(camera, (Vec3){13,2,3}, (Vec3){0,0,0}, (Vec3){0,1,0});
     renderScene(camera, scene, 6);
 
+    while(!SDLShouldWindowClose(&window))
+    {
+
+
+        // End Frame
+        SDLPollEvents(&window);
+        SDLUpdate(&window);
+    }
+
+    // BUG: If we destroy the camera and scene before the renderScene has finished, we will get seg fault
+    // maybe render scene returns a promise struct?
+    // This seems like a good idea, its an output struct, bool finished, a ptr to the image,
+    // ability to get image even if already being written too?
     printf("Cleaning up\n");
     destroyCamera(camera);
     destroyScene(scene);

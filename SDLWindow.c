@@ -27,6 +27,7 @@ bool createWindow(SDLWindow* window)
     window->surface = NULL;
     window->window = SDL_CreateWindow("Example", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720,
                             SDL_WINDOW_SHOWN);
+    window->running = true;
     if (!window->window)
     {
         printf("ERROR: Window Creation\n");
@@ -58,4 +59,30 @@ SDL_Surface* getSDLSurface(SDLWindow* window)
 SDL_Window* getSDLWindow(SDLWindow* window)
 {
     return window->window;
+}
+
+void SDLPollEvents(SDLWindow* window)
+{
+   SDL_Event ev;
+   while(SDL_PollEvent(&ev) != 0)
+   {
+      switch(ev.type)
+      {
+          case SDL_QUIT:
+              window->running = false;
+              break;
+            default:
+                break;
+      }
+   }
+}
+
+bool SDLShouldWindowClose(SDLWindow* window)
+{
+    return !window->running;
+}
+
+void SDLUpdate(SDLWindow* window)
+{
+    SDL_UpdateWindowSurface(window->window);
 }
