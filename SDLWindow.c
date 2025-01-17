@@ -16,7 +16,7 @@ void SDLQuit()
     SDL_Quit();
 }
 
-bool createWindow(SDLWindow* window)
+bool createWindow(SDLWindow* window, int width, int height, const char* name)
 {
     if (!window)
     {
@@ -25,7 +25,7 @@ bool createWindow(SDLWindow* window)
     }
 
     window->surface = NULL;
-    window->window = SDL_CreateWindow("Example", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720,
+    window->window = SDL_CreateWindow(name, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height,
                             SDL_WINDOW_SHOWN);
     window->running = true;
     if (!window->window)

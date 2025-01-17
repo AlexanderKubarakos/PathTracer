@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Scene.h"
-
+#include "PPM.h"
 // Camera renders a scene with certain view parameters (sample counts, depth, ...)
 typedef struct
 {
@@ -24,7 +24,18 @@ typedef struct
     Vec3 pixelDeltaV;
 } Camera;
 
+// Data passed to each thread, describes what to render and where
+typedef struct {
+    Image* image; //image to draw too
+    Camera* camera; //camera to use in render
+    Scene* scene; //scene to hit against
+    bool done; // TODO: maybe make this a condition var so I can spin lock check it for true
+    int nextTile; //shared state for all threads, tells thread what tile to do next
+    int threadCount;
+    pthread_mutex_t mutex; // mutex for nextTile mutal exclussion
+} RenderTarget;
+
 Camera* createCamera(int width, double aspectRatio, int sampleCount, int rayDepth, double vfov, double defocusAngle, double focusDistance);
 void lookAt(Camera* camera, const Vec3 lookFrom, const Vec3 lookAt, const Vec3 up);
-void renderScene(Camera* camera, Scene* scene, int threadCount);
+RenderTarget* renderScene(Camera* camera, Scene* scene, int threadCount);
 void destroyCamera(Camera* camera);

@@ -12,12 +12,12 @@ Image createImage(int w, int h)
     return (Image){w, h, malloc(w * h * 3 * sizeof(unsigned char))};
 }
 
-void deleteImage(Image image)
+void deleteImage(Image* image)
 {
     #if THREADING
     //TODO: delete mutex
     #endif
-    free(image.data);
+    free(image->data);
 }
 
 double static inline linearToGamma(double linear)

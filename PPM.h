@@ -1,7 +1,7 @@
 #pragma once
 #include "Vec3.h"
 
-#define THREADING 1
+#define THREADING 0
 
 #if THREADING
 #include <pthread.h>
@@ -20,7 +20,7 @@ typedef struct
 typedef Vec3 Color;
 
 Image createImage(int w, int h);
-void deleteImage(Image image);
+void deleteImage(Image* image);
 void setPixel(Image* image, int x, int y, Color* color);
 #if THREADING
 void setPixelThreaded(Image* image, int x, int y, Color* color);

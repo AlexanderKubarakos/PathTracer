@@ -78,10 +78,10 @@ int main()
     // Create camera to render scenes
     Camera* camera = createCamera(width, aspectRatio, 100, 50, 20, 0.6, 10.0);
     lookAt(camera, (Vec3){13,2,3}, (Vec3){0,0,0}, (Vec3){0,1,0});
-    RenderTarget* target = renderScene(camera, scene, 6); // Start render
+    RenderTarget* target = renderScene(camera, scene, 6);
 
     SDL_Surface* fromImage;
-    fromImage = SDL_CreateRGBSurfaceFrom(target->image->data, camera->width,
+fromImage = SDL_CreateRGBSurfaceFrom(target->image->data, camera->width,
                         camera->height, 8 * 3, 3 * camera->width, 0x0000FF,0x00FF00,0xFF0000,0);
     while(!SDLShouldWindowClose(&window))
     {

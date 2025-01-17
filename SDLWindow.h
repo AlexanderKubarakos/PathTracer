@@ -13,7 +13,7 @@ typedef struct
 
 bool SDLInit(uint flags);
 void SDLQuit();
-bool createWindow(SDLWindow* window);
+bool createWindow(SDLWindow* window, int width, int height, const char* name);
 void deleteWindow(SDLWindow* window);
 SDL_Surface* getSDLSurface(SDLWindow* window);
 SDL_Window* getSDLWindow(SDLWindow* window);
