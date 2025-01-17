@@ -3,20 +3,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "KubsMath.h"
+#include <pthread.h>
 
 Image createImage(int w, int h)
 {
-    #if THREADING
-    // TODO: init mutex
-    #endif
-    return (Image){w, h, malloc(w * h * 3 * sizeof(unsigned char))};
+    Image i = (Image){w, h, malloc(w * h * 3 * sizeof(unsigned char))};
+    pthread_mutex_init(&i.mutex, NULL);
+    return i;
 }
 
 void deleteImage(Image* image)
 {
-    #if THREADING
-    //TODO: delete mutex
-    #endif
+    pthread_mutex_destroy(&image->mutex);
     free(image->data);
 }
 
@@ -29,23 +27,16 @@ double static inline linearToGamma(double linear)
 
 void setPixel(Image* image, int x, int y, Color* color)
 {
+    pthread_mutex_lock(&image->mutex);
     image->data[x*3 + y * image->width * 3] = (int)(256  * clamp(linearToGamma(color->x), 0, 0.999));
     image->data[x*3 + y * image->width * 3 + 1] = (int)(256  * clamp(linearToGamma(color->y), 0, 0.999));
     image->data[x*3 + y * image->width * 3 + 2] = (int)(256  * clamp(linearToGamma(color->z), 0, 0.999));
+    pthread_mutex_unlock(&image->mutex);
 }
-
-#if THREADING
-void setPixelThreaded(Image* image, int x, int y, Color* color)
-{
-
-    image->data[x*3 + y * image->width * 3] = (int)(256  * clamp(linearToGamma(color->x), 0, 0.999));
-    image->data[x*3 + y * image->width * 3 + 1] = (int)(256  * clamp(linearToGamma(color->y), 0, 0.999));
-    image->data[x*3 + y * image->width * 3 + 2] = (int)(256  * clamp(linearToGamma(color->z), 0, 0.999));
-}
-#endif
 
 void outputImage(Image* image, const char* file)
 {
+    pthread_mutex_lock(&image->mutex);
     FILE* imageFile;
 
     imageFile = fopen(file, "w");
@@ -65,6 +56,7 @@ void outputImage(Image* image, const char* file)
     }
 
     fclose(imageFile);
+    pthread_mutex_unlock(&image->mutex);
 }
 
 Color randomColor()

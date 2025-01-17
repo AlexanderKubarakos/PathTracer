@@ -12,6 +12,15 @@
 #include <time.h>
 #define TILE_SIZE 64
 
+// Data passed to each thread, describes what to render and where
+typedef struct {
+    RenderResult* result;
+    Camera* camera; //camera to use in render
+    Scene* scene; //scene to hit against
+    int nextTile; //shared state for all threads, tells thread what tile to do next
+    _Atomic(int) threadCount;
+} RenderTarget;
+
 void cameraSetup(Camera* c)
 {
     c->height = (int)(c->width / c->aspectRatio);
@@ -69,6 +78,11 @@ Camera* createCamera(int width, double aspectRatio, int sampleCount, int rayDept
     cameraSetup(c);
 
     return c;
+}
+
+void destroyCamera(Camera* camera)
+{
+    free(camera);
 }
 
 void lookAt(Camera* camera, const Vec3 lookFrom, const Vec3 lookAt, const Vec3 up)
@@ -137,7 +151,7 @@ void* renderTiles(void* data)
     RenderTarget* target = (RenderTarget*)data;
 
     Camera* camera = target->camera;
-    Image* image = target->image;
+    Image* image = target->result->image;
     Scene* scene = target->scene;
     double colorRatio = 1.0 / camera->sampleCount;
 
@@ -146,9 +160,7 @@ void* renderTiles(void* data)
     while(true)
     {
         // pull new tile
-        pthread_mutex_lock(&target->mutex);
         int tile = target->nextTile++;
-        pthread_mutex_unlock(&target->mutex);
 
         // if this tile is out of bounds, we have finished our work
         if (tile >= xTileAmmount * yTileAmmount)
@@ -175,9 +187,7 @@ void* renderTiles(void* data)
                 }
 
                 pixelColor = mulVec3(pixelColor, colorRatio);
-                pthread_mutex_lock(&target->mutex);
-                setPixel(image, x, y, &pixelColor);
-                pthread_mutex_unlock(&target->mutex);
+                setPixel(image, x, y, &pixelColor); // set pixel is thread-safe
             }
         }
 
@@ -208,33 +218,30 @@ void* renderSceneThreaded(void* arg)
         pthread_join(threads[i], NULL);
     }
 
-    target->done = true;
+    //BUG: free target correctly
+    target->result->done = true;
     printf("Done Render! Time spent: %lis\n", time(NULL) - start);
     printf("Outputing image...\n");
-    outputImage(target->image, "output.ppm");
+    outputImage(target->result->image, "output.ppm");
+    free(target);
     return NULL;
 }
 
-RenderTarget* renderScene(Camera* camera, Scene* scene, int threadCount)
+RenderResult* renderScene(Camera* camera, Scene* scene, int threadCount)
 {
-    // TODO: Should we make copies here so that we can move camera and change scene while still rendering?
-    // Deep copying the scene would be so much work
-    RenderTarget* target = malloc(sizeof(RenderTarget));
+    RenderResult* result = malloc(sizeof(*result));
+    result->image = malloc(sizeof(Image));
+    *result->image = createImage(camera->width, camera->height);
+    result->done = false;
+
+    RenderTarget* target = malloc(sizeof(*target));
+    target->result = result;
     target->camera = camera;
     target->scene = scene;
-    target->image = malloc(sizeof(Image));
-    *target->image = createImage(camera->width, camera->height);
-    target->done = false;
     target->nextTile = 0;
     target->threadCount = threadCount;
-    pthread_mutex_init(&target->mutex, NULL);
 
     pthread_t thread;
     pthread_create(&thread, NULL, renderSceneThreaded, target);
-    return target;
-}
-
-void destroyCamera(Camera* camera)
-{
-    free(camera);
+    return result;
 }

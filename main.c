@@ -73,46 +73,40 @@ int main()
     {
         return -1;
     }
-	SDL_FillRect(getSDLSurface(&window), NULL, SDL_MapRGB( getSDLSurface(&window)->format, 255, 255, 255 ) );
 
     // Create camera to render scenes
     Camera* camera = createCamera(width, aspectRatio, 100, 50, 20, 0.6, 10.0);
     lookAt(camera, (Vec3){13,2,3}, (Vec3){0,0,0}, (Vec3){0,1,0});
-    RenderTarget* target = renderScene(camera, scene, 6); // Start render
+    RenderResult* result = renderScene(camera, scene, 6); // Start render
 
     SDL_Surface* fromImage;
-    fromImage = SDL_CreateRGBSurfaceFrom(target->image->data, camera->width,
+    fromImage = SDL_CreateRGBSurfaceFrom(result->image->data, camera->width,
                         camera->height, 8 * 3, 3 * camera->width, 0x0000FF,0x00FF00,0xFF0000,0);
+    if (!fromImage)
+        printf("Failed to create image: %s\n", SDL_GetError());
+    SDL_Rect dest;
+    dest.x = 0;
+    dest.y = 0;
+    dest.w = camera->width;
+    dest.h = camera->height;
     while(!SDLShouldWindowClose(&window))
     {
-        pthread_mutex_lock(&target->mutex);
-        if (target->done || 1)
-        {
-            target->done = false;
-                        if (!fromImage)
-                printf("Failed to create image: %s\n", SDL_GetError());
-            SDL_Rect dest;
-            dest.x = 0;
-            dest.y = 0;
-            dest.w = camera->width;
-            dest.h = camera->height;
-            if(SDL_BlitScaled(fromImage, NULL, getSDLSurface(&window), &dest) < 0)
-                printf("Failed to blit!\n");
-        }
-        pthread_mutex_unlock(&target->mutex);
+        pthread_mutex_lock(&result->image->mutex);
+        if(SDL_BlitScaled(fromImage, NULL, getSDLSurface(&window), &dest) < 0)
+            printf("Failed to blit!\n");
+        pthread_mutex_unlock(&result->image->mutex);
+
         // End Frame
         SDLPollEvents(&window);
         SDLUpdate(&window);
     }
 
-    // BUG: If we destroy the camera and scene before the renderScene has finished, we will get seg fault
-    // maybe render scene returns a promise struct?
-    // This seems like a good idea, its an output struct, bool finished, a ptr to the image,
-    // ability to get image even if already being written too?
+    SDLQuit();
+    while (!result->done);
+
     printf("Cleaning up\n");
     destroyCamera(camera);
     destroyScene(scene);
-    SDLQuit();
 
     printf("Finished\n");
     return 0;
