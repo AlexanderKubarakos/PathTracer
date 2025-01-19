@@ -18,6 +18,7 @@ bool scatterMetal(void* this, const Ray rayIn, HitRecord* record, Color* attenua
 Metal* createMetal(Color albedo, double fuzz)
 {
     Metal* mat = malloc(sizeof(Metal));
+    mat->material = createDefaultMaterial();
     mat->material.scatter = scatterMetal;
     mat->material.destroy = destoryMetal;
     mat->albedo = albedo;

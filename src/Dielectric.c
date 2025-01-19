@@ -6,6 +6,7 @@
 Dielectric* createDielectric(double refractionIndex)
 {
     Dielectric* mat = malloc(sizeof(Dielectric));
+    mat->material = createDefaultMaterial();
     mat->material.scatter = scatterDielectric;
     mat->material.destroy = destoryDielectric;
     mat->refractionIndex = refractionIndex;

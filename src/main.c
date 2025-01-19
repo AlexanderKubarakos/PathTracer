@@ -65,7 +65,7 @@ int main()
     const double aspectRatio = 16.0/9.0;
     // Create scene of hittable objects
     Scene* scene = createScene(512);
-    sphereScene(scene, 1);
+    sphereScene(scene, 3);
 
     SDLInit(SDL_INIT_EVERYTHING);
     SDLWindow window;

@@ -18,6 +18,7 @@ bool scatterLambertian(void* this, const Ray rayIn, HitRecord* record, Color* at
 Lambertian* createLambertian(Color albedo)
 {
     Lambertian* mat = malloc(sizeof(Lambertian));
+    mat->material = createDefaultMaterial();
     mat->material.scatter = scatterLambertian;
     mat->material.destroy = destoryLambertian;
     mat->albedo = albedo;
