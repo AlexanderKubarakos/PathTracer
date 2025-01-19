@@ -25,8 +25,9 @@ typedef struct
 } Camera;
 
 typedef struct {
-    Image* image; // What mutex protects image?, it should be part of image
-    _Atomic(bool) done;
+    Image* image; // image of result
+    _Atomic(bool) done; // done signals to any readers of the result that the result is complete
+    _Atomic(bool) stop; // stop signals to all threads working on this result to stop
     pthread_mutex_t mutex; // mutex for done field, TODO: atomic would replace
 } RenderResult;
 

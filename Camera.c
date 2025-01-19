@@ -163,7 +163,7 @@ void* renderTiles(void* data)
         int tile = target->nextTile++;
 
         // if this tile is out of bounds, we have finished our work
-        if (tile >= xTileAmmount * yTileAmmount)
+        if (tile >= xTileAmmount * yTileAmmount || target->result->stop)
         {
             return NULL;
         }
@@ -219,10 +219,17 @@ void* renderSceneThreaded(void* arg)
     }
 
     //BUG: free target correctly
+    if (target->result->stop)
+    {
+        printf("Stoping render mid-way...\n");
+    }
+    else
+    {
+        printf("Done Render! Time spent: %lis\n", time(NULL) - start);
+        printf("Outputing image...\n");
+        outputImage(target->result->image, "output.ppm");
+    }
     target->result->done = true;
-    printf("Done Render! Time spent: %lis\n", time(NULL) - start);
-    printf("Outputing image...\n");
-    outputImage(target->result->image, "output.ppm");
     free(target);
     return NULL;
 }

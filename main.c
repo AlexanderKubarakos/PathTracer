@@ -20,7 +20,7 @@ void sphereScene(Scene* scene, int factor)
 {
     Material* ground_material = (Material*)createLambertian((Color){0.5, 0.5, 0.5});
     addHittable(scene, createSphere((Vec3){0,-1000,0}, 1000, ground_material));
-    // TODO: make some test scene functions, with switch statment to choose
+
     for (int a = -factor; a < factor; a++) {
         for (int b = -factor; b < factor; b++) {
             double choose_mat = randomDouble();
@@ -77,6 +77,7 @@ int main()
     // Create camera to render scenes
     Camera* camera = createCamera(width, aspectRatio, 100, 50, 20, 0.6, 10.0);
     lookAt(camera, (Vec3){13,2,3}, (Vec3){0,0,0}, (Vec3){0,1,0});
+
     RenderResult* result = renderScene(camera, scene, 6); // Start render
 
     SDL_Surface* fromImage;
@@ -102,6 +103,7 @@ int main()
     }
 
     SDLQuit();
+    result->stop = true;
     while (!result->done);
 
     printf("Cleaning up\n");
