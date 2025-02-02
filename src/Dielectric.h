@@ -8,5 +8,4 @@ typedef struct
 } Dielectric;
 
 Dielectric* createDielectric(double refractionIndex);
-bool scatterDielectric(void* this, const Ray rayIn, HitRecord* record, Color* attenuation, Ray* rayScattered);
 void destoryDielectric(void* dielectric);

@@ -9,5 +9,4 @@ typedef struct
 } Lambertian;
 
 Lambertian* createLambertian(Color albedo);
-bool scatterLambertian(void* this, const Ray rayIn, HitRecord* record, Color* attenuation, Ray* rayScattered);
 void destoryLambertian(void* lambertian);

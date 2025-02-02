@@ -15,7 +15,7 @@
 #include "SDLWindow.h"
 #include "SDL_surface.h"
 #include <pthread.h>
-
+#include "DiffuseLight.h"
 void sphereScene(Scene* scene, int factor)
 {
     Material* ground_material = (Material*)createLambertian((Color){0.5, 0.5, 0.5});
@@ -49,7 +49,7 @@ void sphereScene(Scene* scene, int factor)
         }
     }
 
-    Material* material1 = (Material*)createDielectric(1.5);
+    Material* material1 = (Material*)createDiffuseLight((Color){1,1,1});
     addHittable(scene,createSphere((Vec3){0,1,0}, 1.0, material1));
 
     Material* material2 = (Material*)createLambertian((Color){0.4, 0.2, 0.1});
@@ -64,7 +64,7 @@ int main()
     const int width = 1080;
     const double aspectRatio = 16.0/9.0;
     // Create scene of hittable objects
-    Scene* scene = createScene(512);
+    Scene* scene = createScene(128);
     sphereScene(scene, 3);
 
     SDLInit(SDL_INIT_EVERYTHING);
@@ -75,7 +75,7 @@ int main()
     }
 
     // Create camera to render scenes
-    Camera* camera = createCamera(width, aspectRatio, 100, 50, 20, 0.6, 10.0);
+    Camera* camera = createCamera(width, aspectRatio, 1000, 50, 20, 0.6, 10.0);
     lookAt(camera, (Vec3){13,2,3}, (Vec3){0,0,0}, (Vec3){0,1,0});
 
     RenderResult* result = renderScene(camera, scene, 6); // Start render

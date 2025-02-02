@@ -102,24 +102,18 @@ Color rayColor(Scene* scene, int depth, Ray ray)
 
     HitRecord record;
     // Does this ray hit anything?
-    if (hitScene(scene, ray, 0.001, INT_MAX, &record))
-    {
-        Ray scattered;
-        Color attenuation;
-        if (record.material->scatter(record.material, ray, &record, &attenuation, &scattered))
-        {
-            return mulVec3Vec3(rayColor(scene, depth-1, scattered), attenuation);
-        }
+    if (!hitScene(scene, ray, 0.001, INT_MAX, &record))
         return (Color){0,0,0};
-    }
 
-    // If we never reach the sky (or a light in the future) we will have black multiplied by attenuations of all the bounces
-    // This creates black since black times any color is still black, so a ray will be return black if it never reaches the sky before max depth is reached
-    // Removing this max depth still causes shadows to occur because so many bounces occur that the reapeated attudentions cause it to get close to black (multiplication with <1.0)
-    // Didn't hit anything, return sky color
-    Vec3 unitDirection = unitVector(ray.direction);
-    double a = 0.5*(unitDirection.y + 1.0);
-    return addVec3(mulVec3((Vec3){1,1,1}, 1.0-a), mulVec3((Vec3){0.5, 0.7, 1.0}, a));
+     Ray scattered;
+     Color attenuation;
+     Color emissionColor = record.material->emission(record.material);
+
+     if (!record.material->scatter(record.material, ray, &record, &attenuation, &scattered))
+         return emissionColor;
+
+     Color scatterColor = mulVec3Vec3(rayColor(scene, depth-1, scattered), attenuation);
+     return addVec3(emissionColor, scatterColor);
 }
 
 static Vec3 defocusDiskSample(Camera* camera)

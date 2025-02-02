@@ -2,7 +2,7 @@
 
 bool defaultScatter(void* this, const Ray rayIn, HitRecord* record, Color* attenuation, Ray* rayScattered)
 {
-    (void) this;
+    (void) this; // GCC shutup! :)
     (void) rayIn;
     (void) record;
     (void) attenuation;
@@ -12,7 +12,7 @@ bool defaultScatter(void* this, const Ray rayIn, HitRecord* record, Color* atten
 
 Color defaultEmission(void* this)
 {
-    (void)this; // gcc shut up!
+    (void)this; // gcc shut up 2.0 electric boogaloo
     return (Color){0,0,0};
 }
 

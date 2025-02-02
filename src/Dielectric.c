@@ -3,16 +3,6 @@
 #include "Ray.h"
 #include "Vec3.h"
 
-Dielectric* createDielectric(double refractionIndex)
-{
-    Dielectric* mat = malloc(sizeof(Dielectric));
-    mat->material = createDefaultMaterial();
-    mat->material.scatter = scatterDielectric;
-    mat->material.destroy = destoryDielectric;
-    mat->refractionIndex = refractionIndex;
-    return mat;
-}
-
 static double reflectance(double cosine, double refractionIndex) {
     // Use Schlick's approximation for reflectance.
     double r0 = (1 - refractionIndex) / (1 + refractionIndex);
@@ -46,6 +36,16 @@ bool scatterDielectric(void* this, const Ray rayIn, HitRecord* record, Color* at
     rayScattered->origin = record->p;
     rayScattered->direction = direction;
     return true;
+}
+
+Dielectric* createDielectric(double refractionIndex)
+{
+    Dielectric* mat = malloc(sizeof(Dielectric));
+    mat->material = createDefaultMaterial();
+    mat->material.scatter = scatterDielectric;
+    mat->material.destroy = destoryDielectric;
+    mat->refractionIndex = refractionIndex;
+    return mat;
 }
 
 void destoryDielectric(void* dielectric)
