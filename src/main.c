@@ -16,8 +16,11 @@
 #include "SDL_surface.h"
 #include <pthread.h>
 #include "DiffuseLight.h"
-void sphereScene(Scene* scene, int factor)
+#define _GNU_SOURCE  
+#include <sched.h>
+void sphereScene(Scene* scene, Camera* camera, int factor)
 {
+    lookAt(camera, (Vec3){13,2,3}, (Vec3){0,0,0}, (Vec3){0,1,0});
     Material* ground_material = (Material*)createLambertian((Color){0.5, 0.5, 0.5});
     addHittable(scene, createSphere((Vec3){0,-1000,0}, 1000, ground_material));
 
@@ -59,13 +62,37 @@ void sphereScene(Scene* scene, int factor)
     addHittable(scene,createSphere((Vec3){4, 1, 0}, 1.0, material3));
 }
 
+void sphereScene2(Scene* scene, Camera* camera)
+{
+    lookAt(camera, (Vec3){-8,10,5}, (Vec3){-3.2,4,0}, (Vec3){0,1,0});
+    Material* ground_material = (Material*)createLambertian((Color){102/255.0, 51/255.0, 153/255.0});
+    addHittable(scene, createSphere((Vec3){1,-14,3}, 15, ground_material));
+
+    Material* light = (Material*)createDiffuseLight((Color){1,1,1});
+    addHittable(scene,createSphere((Vec3){2,0,-15}, 7.5, light));
+
+    //Material* black = (Material*)createLambertian((Color){0/255.0, 0/255.0, 0/255.0});
+    Material* blue = (Material*)createLambertian((Color){0/255.0, 0/255.0, 255/255.0});
+    Material* green = (Material*)createLambertian((Color){0/255.0, 255/255.0, 0/255.0});
+    Material* red = (Material*)createLambertian((Color){255/255.0, 0/255.0, 0/255.0});
+    Material* white = (Material*)createLambertian((Color){255/255.0, 255/255.0, 255/255.0});
+
+    addHittable(scene,createSphere((Vec3){-4,1,-1.2}, 0.6, blue));
+    addHittable(scene,createSphere((Vec3){-2,1,-1.15}, 0.65, green));
+    addHittable(scene,createSphere((Vec3){0,1.2,-1}, 0.7, red));
+    addHittable(scene,createSphere((Vec3){2,1.2,-1}, 0.75, white));
+}
+
 int main()
 {
-    const int width = 1080;
+    const int width = 800;
     const double aspectRatio = 16.0/9.0;
+    // Create camera to render scenes
+    Camera* camera = createCamera(width, aspectRatio, 5000, 50, 20, 0, 10.0);
     // Create scene of hittable objects
     Scene* scene = createScene(128);
-    sphereScene(scene, 3);
+    //sphereScene(scene, camera, 3);
+    sphereScene2(scene, camera);
 
     SDLInit(SDL_INIT_EVERYTHING);
     SDLWindow window;
@@ -74,11 +101,7 @@ int main()
         return -1;
     }
 
-    // Create camera to render scenes
-    Camera* camera = createCamera(width, aspectRatio, 1000, 50, 20, 0.6, 10.0);
-    lookAt(camera, (Vec3){13,2,3}, (Vec3){0,0,0}, (Vec3){0,1,0});
-
-    RenderResult* result = renderScene(camera, scene, 6); // Start render
+    RenderResult* result = renderScene(camera, scene, 12); // Start render
 
     SDL_Surface* fromImage;
     fromImage = SDL_CreateRGBSurfaceFrom(result->image->data, camera->width,

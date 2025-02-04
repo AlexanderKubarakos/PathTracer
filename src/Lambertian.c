@@ -11,6 +11,7 @@ bool scatterLambertian(void* this, const Ray rayIn, HitRecord* record, Color* at
 
     rayScattered->origin = record->p; 
     rayScattered->direction = scatterDirection;
+    rayScattered->invDirection = (Vec3){1/rayScattered->direction.x, 1/rayScattered->direction.y, 1/rayScattered->direction.z};
     *attenuation = lambertian->albedo;
     return true;
 };

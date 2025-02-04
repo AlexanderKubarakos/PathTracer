@@ -10,6 +10,8 @@ Hittable* createSphere(const Vec3 center, const double radius, Material* m)
     Sphere* sphere = malloc(sizeof(Sphere));
     sphere->h.hitfunc = hitSphere;
     sphere->h.destroy = destroySphere;
+    Vec3 radiusVector = (Vec3){radius, radius, radius};
+    sphere->h.aabb = createAABB(subVec3(center, radiusVector), addVec3(center, radiusVector));
     sphere->h.material = m; 
     sphere->center = center;
     sphere->radius = radius;

@@ -35,3 +35,12 @@ static inline double clamp(double value, double min, double max)
         return max;
     return value;
 }
+
+static inline float minFloat(float a, float b) {
+  return (a<b) ? a : b;
+}
+
+static inline float maxFloat(float a, float b) {
+  return (b<a) ? a : b;
+}
+

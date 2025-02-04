@@ -136,6 +136,7 @@ Ray sampleRay(Camera* camera, int x, int y)
     pixelCenter = addVec3(pixelCenter, mulVec3(camera->pixelDeltaU, x + randomDoubleRange(-0.5, 0.5)));
     pixelCenter = addVec3(pixelCenter, mulVec3(camera->pixelDeltaV, y + randomDoubleRange(-0.5, 0.5)));
     ray.direction = subVec3(pixelCenter, ray.origin);
+    ray.invDirection = (Vec3){1/ray.direction.x, 1/ray.direction.y, 1/ray.direction.z};
 
     return ray;
 }

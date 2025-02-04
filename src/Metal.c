@@ -11,6 +11,7 @@ bool scatterMetal(void* this, const Ray rayIn, HitRecord* record, Color* attenua
 
     rayScattered->origin = record->p; 
     rayScattered->direction = reflected;
+    rayScattered->invDirection = (Vec3){1/rayScattered->direction.x, 1/rayScattered->direction.y, 1/rayScattered->direction.z};
     *attenuation = metal->albedo; // we could do a reference here and not a copy... I dont know about perfromance
     return dot(reflected, record->normal) > 0;
 };
