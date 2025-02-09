@@ -101,7 +101,7 @@ Color rayColor(Scene* scene, int depth, Ray ray)
         return (Color){0,0,0};
 
     HitRecord record;
-    // Does this ray hit anything?
+    // Does this ray hit anything?  
     if (!hitScene(scene, ray, 0.001, INT_MAX, &record))
         return (Color){0,0,0};
 
@@ -231,6 +231,7 @@ void* renderSceneThreaded(void* arg)
 
 RenderResult* renderScene(Camera* camera, Scene* scene, int threadCount)
 {
+    buildSceneBVH(scene);
     RenderResult* result = malloc(sizeof(*result));
     result->image = malloc(sizeof(Image));
     *result->image = createImage(camera->width, camera->height);

@@ -1,6 +1,7 @@
 #pragma once
+#include "Vec3.h"
 
 typedef struct 
 {
-    float[3] a, b, c;
+    Vec3 a, b, c;
 } Triangle;

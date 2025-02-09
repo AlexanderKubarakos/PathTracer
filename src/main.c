@@ -22,7 +22,7 @@ void sphereScene(Scene* scene, Camera* camera, int factor)
 {
     lookAt(camera, (Vec3){13,2,3}, (Vec3){0,0,0}, (Vec3){0,1,0});
     Material* ground_material = (Material*)createLambertian((Color){0.5, 0.5, 0.5});
-    addHittable(scene, createSphere((Vec3){0,-1000,0}, 1000, ground_material));
+    addHittable(scene, createSphere((Vec3){0,-100,0}, 100, ground_material));
 
     for (int a = -factor; a < factor; a++) {
         for (int b = -factor; b < factor; b++) {
@@ -77,9 +77,9 @@ void sphereScene2(Scene* scene, Camera* camera)
     Material* red = (Material*)createLambertian((Color){255/255.0, 0/255.0, 0/255.0});
     Material* white = (Material*)createLambertian((Color){255/255.0, 255/255.0, 255/255.0});
 
-    addHittable(scene,createSphere((Vec3){-4,1,-1.2}, 0.6, blue));
-    addHittable(scene,createSphere((Vec3){-2,1,-1.15}, 0.65, green));
-    addHittable(scene,createSphere((Vec3){0,1.2,-1}, 0.7, red));
+    addHittable(scene,createSphere((Vec3){-2.5,1,-1.2}, 0.6, blue));
+    addHittable(scene,createSphere((Vec3){-1,1,-1.15}, 0.65, green));
+    addHittable(scene,createSphere((Vec3){0.5,1.2,-1}, 0.7, red));
     addHittable(scene,createSphere((Vec3){2,1.2,-1}, 0.75, white));
 }
 
@@ -88,10 +88,10 @@ int main()
     const int width = 800;
     const double aspectRatio = 16.0/9.0;
     // Create camera to render scenes
-    Camera* camera = createCamera(width, aspectRatio, 5000, 50, 20, 0, 10.0);
+    Camera* camera = createCamera(width, aspectRatio, 500, 50, 20, 0, 10.0);
     // Create scene of hittable objects
     Scene* scene = createScene(128);
-    //sphereScene(scene, camera, 3);
+    //sphereScene(scene, camera, 7);
     sphereScene2(scene, camera);
 
     SDLInit(SDL_INIT_EVERYTHING);

@@ -34,6 +34,7 @@ bool scatterDielectric(void* this, const Ray rayIn, HitRecord* record, Color* at
     }
 
     rayScattered->origin = record->p;
+    // TODO: BUG: setting a rays direcrtion should be a function call so that inv direction is always set.
     rayScattered->direction = direction;
     rayScattered->invDirection = (Vec3){1/rayScattered->direction.x, 1/rayScattered->direction.y, 1/rayScattered->direction.z};
     return true;

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 project(RayTracer)
-add_compile_options(-O3 -Wall -lm -g -Werror)
+add_compile_options(-O3 -Wall -lm -g)
 find_library(MATH_LIBRARY m)
 find_library(Threads threads)
 add_link_options()

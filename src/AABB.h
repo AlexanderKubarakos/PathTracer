@@ -10,12 +10,37 @@ typedef struct
     Vec3 max;
 } AABB;
 
+static float center(float min, float max)
+{
+    return min + (max-min)*0.5f;
+}
+
+static inline Vec3 aabbBoundsSize(AABB* aabb)
+{
+    return (Vec3){aabb->max.x - aabb->min.x, aabb->max.y - aabb->min.y, aabb->max.z - aabb->min.z};
+}
+
+static inline float centerAxis(AABB* aabb, int axis)
+{
+    if (axis == 1)
+    {
+        // y
+        return center(aabb->min.y, aabb->max.y);
+    } else if (axis == 2)
+    {
+        //z
+        return center(aabb->min.z, aabb->max.z);
+    }
+
+    return center(aabb->min.x, aabb->max.x);
+}
+
 static inline AABB createAABB(Vec3 min, Vec3 max)
 {
     return (AABB){.min = min, .max = max};
 }
 
-static inline bool rayAABBIntersection(AABB box, Ray ray, double t)
+static inline bool rayAABBIntersection(const AABB box, const Ray ray, const double t)
 {
     double tx1 = (box.min.x - ray.origin.x)*ray.invDirection.x;
     double tx2 = (box.max.x - ray.origin.x)*ray.invDirection.x;

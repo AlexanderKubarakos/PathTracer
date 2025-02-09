@@ -10,6 +10,15 @@ typedef struct
     double z;
 } Vec3;
 
+/* TODO: Rewrite this stuff
+addVec3F
+addVec3
+subVec3F
+subVec3
+mulVec3F
+mulVec3
+*/
+
 static inline Vec3 addVec3(const Vec3 a, const Vec3 b) { return (Vec3){a.x + b.x, a.y + b.y, a.z + b.z};}
 static inline Vec3 subVec3(const Vec3 a, const Vec3 b) { return (Vec3){a.x - b.x, a.y - b.y, a.z - b.z};}
 static inline Vec3 mulVec3(const Vec3 a, double d) { return (Vec3){a.x*d, a.y*d, a.z*d};}

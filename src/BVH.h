@@ -13,4 +13,4 @@ struct BVHNode
     BVHNode* rightChild;
 };
 
-BVHNode createBVH(Hittable* list, int length);
+BVHNode createBVH(Hittable** list, int length);
