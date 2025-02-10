@@ -54,7 +54,6 @@ void outputImage(Image* image, const char* file)
             fprintf(imageFile, "%i %i %i\n", image->data[x*3 + y * image->width * 3], image->data[x*3 + y * image->width * 3 + 1], image->data[x*3 + y * image->width * 3 + 2]);
         }
     }
-
     fclose(imageFile);
     pthread_mutex_unlock(&image->mutex);
 }

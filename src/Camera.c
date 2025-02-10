@@ -103,7 +103,7 @@ Color rayColor(Scene* scene, int depth, Ray ray)
     HitRecord record;
     // Does this ray hit anything?  
     if (!hitScene(scene, ray, 0.001, INT_MAX, &record))
-        return (Color){0,0,0};
+        return scene->background;
 
      Ray scattered;
      Color attenuation;

@@ -1,14 +1,16 @@
 #pragma once
 #include "Hittable.h"
 #include "BVH.h"
+#include "PPM.h"
 // A scene is a list of hitable objects
 typedef struct
 {
     HittableList list;
     BVHNode bvh;
+    Color background;
 } Scene;
 
-Scene* createScene(int length);
+Scene* createScene(int length, Color background);
 void destroyScene(Scene* scene);
 void addHittable(Scene* scene, Hittable* hittable);
 void buildSceneBVH(Scene* scene);

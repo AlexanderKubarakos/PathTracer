@@ -8,4 +8,4 @@ typedef struct
     Vec3 invDirection;
 } Ray;
 
-Vec3 rayAt(Ray r, double t);
+Vec3 rayAt(const Ray r, const double t);

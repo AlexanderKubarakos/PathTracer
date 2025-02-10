@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-Scene* createScene(int length)
+Scene* createScene(int length, Color background)
 {
     Scene* s = malloc(sizeof(Scene));
     if (!s)
@@ -12,7 +12,7 @@ Scene* createScene(int length)
     }
 
     s->list = createHittableList();
-
+    s->background = background;
     return s;
 }
 
@@ -77,7 +77,7 @@ bool rayBVHTraversal(Scene* scene, BVHNode* node, const Ray ray, double rayMin, 
 bool hitScene(Scene* scene, const Ray ray, double rayMin, double rayMax, HitRecord* record)
 {
     #define BVH
-#ifdef BVH
+#ifdef BVH1
     return rayBVHTraversal(scene, &scene->bvh, ray, rayMin, rayMax, record);
 #else
     HitRecord tempRecord;
@@ -92,7 +92,7 @@ bool hitScene(Scene* scene, const Ray ray, double rayMin, double rayMax, HitReco
             *record = tempRecord;
         }
     }
-
+    
     return hitAnything;
 #endif
 }

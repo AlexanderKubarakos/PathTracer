@@ -18,8 +18,10 @@
 #include "DiffuseLight.h"
 #define _GNU_SOURCE  
 #include <sched.h>
+#include "Model.h"
 void sphereScene(Scene* scene, Camera* camera, int factor)
 {
+    scene->background = (Color){0,0,0};
     lookAt(camera, (Vec3){13,2,3}, (Vec3){0,0,0}, (Vec3){0,1,0});
     Material* ground_material = (Material*)createLambertian((Color){0.5, 0.5, 0.5});
     addHittable(scene, createSphere((Vec3){0,-100,0}, 100, ground_material));
@@ -64,6 +66,7 @@ void sphereScene(Scene* scene, Camera* camera, int factor)
 
 void sphereScene2(Scene* scene, Camera* camera)
 {
+    scene->background = (Color){0,0,0};
     lookAt(camera, (Vec3){-8,10,5}, (Vec3){-3.2,4,0}, (Vec3){0,1,0});
     Material* ground_material = (Material*)createLambertian((Color){102/255.0, 51/255.0, 153/255.0});
     addHittable(scene, createSphere((Vec3){1,-14,3}, 15, ground_material));
@@ -83,16 +86,24 @@ void sphereScene2(Scene* scene, Camera* camera)
     addHittable(scene,createSphere((Vec3){2,1.2,-1}, 0.75, white));
 }
 
+void dragonScene(Scene* scene, Camera* camera)
+{
+    Model* model = loadOBJModel("models/SmallDragon.obj");
+    addHittable(scene, (Hittable*)model);
+    lookAt(camera, (Vec3){3,0.2,-1}, (Vec3){0,0,0}, (Vec3){0,1,0});
+}
+
 int main()
 {
     const int width = 800;
     const double aspectRatio = 16.0/9.0;
     // Create camera to render scenes
-    Camera* camera = createCamera(width, aspectRatio, 500, 50, 20, 0, 10.0);
+    Camera* camera = createCamera(width, aspectRatio,10, 50, 20, 0, 10.0);
     // Create scene of hittable objects
-    Scene* scene = createScene(128);
+    Scene* scene = createScene(128, (Color){1,1,1});
     //sphereScene(scene, camera, 7);
-    sphereScene2(scene, camera);
+    //sphereScene2(scene, camera);
+    dragonScene(scene, camera);
 
     SDLInit(SDL_INIT_EVERYTHING);
     SDLWindow window;
@@ -130,8 +141,8 @@ int main()
     while (!result->done);
 
     printf("Cleaning up\n");
-    destroyCamera(camera);
-    destroyScene(scene);
+    //destroyCamera(camera);
+    //destroyScene(scene);
 
     printf("Finished\n");
     return 0;
