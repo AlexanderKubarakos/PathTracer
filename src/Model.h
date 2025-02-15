@@ -16,4 +16,4 @@ typedef struct
 
 Model* loadOBJModel(const char* fileLocation);
 void defaultCube(Model* model);
-void freeModel(Model* model);
+void deleteModel(Model* model);

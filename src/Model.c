@@ -52,6 +52,7 @@ Model* loadOBJModel(const char* fileLocation)
 
         if (data[0] == 'v' && data[1] == ' ')
         {
+            // TODO: add re alloc
             token = strtok(data+2, " ");
             vertexList[vertex].x = strtof(token, &token);
             token = strtok(NULL, " ");
@@ -79,6 +80,8 @@ Model* loadOBJModel(const char* fileLocation)
     return model;
 }
 
+void defaultCube(Model* model)
+{
     static Vec3 v[] = {
         (Vec3){-1, -1,  1}, //0
         (Vec3){1, -1,  1}, //1
@@ -89,10 +92,7 @@ Model* loadOBJModel(const char* fileLocation)
         (Vec3){-1,  1, -1}, //6
         (Vec3){ 1,  1, -1}  //7
     };
-
-void defaultCube(Model* model)
-{
-    model->triangles = malloc(sizeof(Triangle) * 10000);
+    model->triangles = malloc(sizeof(Triangle) * 1000);
     model->triangleCount = 0;
 
     model->triangles[model->triangleCount++] = (Triangle){v[2], v[6], v[7]}; // top
@@ -112,7 +112,8 @@ void defaultCube(Model* model)
     model->h.material = (Material*)createLambertian((Color){0.2,0.2,0.2});
 }
 
-void freeModel(Model* model)
+void deleteModel(Model* model)
 {
-    //TODO
+    free(model->triangles);
+    
 }

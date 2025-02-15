@@ -90,7 +90,7 @@ void dragonScene(Scene* scene, Camera* camera)
 {
     Model* model = loadOBJModel("models/SmallDragon.obj");
     addHittable(scene, (Hittable*)model);
-    lookAt(camera, (Vec3){3,0.2,-1}, (Vec3){0,0,0}, (Vec3){0,1,0});
+    lookAt(camera, (Vec3){-3,0.2,-1}, (Vec3){0,0,0}, (Vec3){0,1,0});
 }
 
 int main()
