@@ -156,7 +156,7 @@ void* renderTiles(void* data)
     {
         // pull new tile
         int tile = target->nextTile++;
-
+        
         // if this tile is out of bounds, we have finished our work
         if (tile >= xTileAmmount * yTileAmmount || target->result->stop)
         {
@@ -236,6 +236,7 @@ RenderResult* renderScene(Camera* camera, Scene* scene, int threadCount)
     result->image = malloc(sizeof(Image));
     *result->image = createImage(camera->width, camera->height);
     result->done = false;
+    result->stop = false;
 
     RenderTarget* target = malloc(sizeof(*target));
     target->result = result;

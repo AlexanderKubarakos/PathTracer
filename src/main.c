@@ -88,22 +88,33 @@ void sphereScene2(Scene* scene, Camera* camera)
 
 void dragonScene(Scene* scene, Camera* camera)
 {
-    Model* model = loadOBJModel("models/SmallDragon.obj");
-    addHittable(scene, (Hittable*)model);
+    scene->background = (Color){1,1,1};
     lookAt(camera, (Vec3){-3,0.2,-1}, (Vec3){0,0,0}, (Vec3){0,1,0});
+    
+    Model* model = loadOBJModel("models/SmallDragon.obj");
+    sceneAddModel(scene, model);
 }
 
-int main()
+int main(int argc, char** argv)
 {
+    bool openWindow = true;
+
+    if(argc == 2 && strcmp(argv[1], "-noWindow") == 0)
+        openWindow = false; 
+
+    printf("%s %i\n", argv[1], openWindow);
     const int width = 800;
     const double aspectRatio = 16.0/9.0;
     // Create camera to render scenes
-    Camera* camera = createCamera(width, aspectRatio,10, 50, 20, 0, 10.0);
+    Camera* camera = createCamera(width, aspectRatio,1, 50, 20, 0, 10.0);
     // Create scene of hittable objects
     Scene* scene = createScene(128, (Color){1,1,1});
-    //sphereScene(scene, camera, 7);
-    //sphereScene2(scene, camera);
-    dragonScene(scene, camera);
+    switch (2)
+    {
+        case 0: sphereScene(scene, camera, 7); break;
+        case 1: sphereScene2(scene, camera); break;
+        case 2: dragonScene(scene, camera); break;
+    }
 
     SDLInit(SDL_INIT_EVERYTHING);
     SDLWindow window;
@@ -112,7 +123,7 @@ int main()
         return -1;
     }
 
-    RenderResult* result = renderScene(camera, scene, 12); // Start render
+    RenderResult* result = renderScene(camera, scene, 10); // Start render
 
     SDL_Surface* fromImage;
     fromImage = SDL_CreateRGBSurfaceFrom(result->image->data, camera->width,
@@ -124,7 +135,7 @@ int main()
     dest.y = 0;
     dest.w = camera->width;
     dest.h = camera->height;
-    while(!SDLShouldWindowClose(&window))
+    while(!SDLShouldWindowClose(&window) && openWindow)
     {
         pthread_mutex_lock(&result->image->mutex);
         if(SDL_BlitScaled(fromImage, NULL, getSDLSurface(&window), &dest) < 0)
@@ -137,7 +148,8 @@ int main()
     }
 
     SDLQuit();
-    result->stop = true;
+    if (openWindow)
+        result->stop = true;
     while (!result->done);
 
     printf("Cleaning up\n");

@@ -3,6 +3,7 @@
 #include "Vec3.h"
 #include "Ray.h"
 #include "KubsMath.h"
+#include "Triangle.h"
 
 typedef struct 
 {
@@ -69,4 +70,20 @@ static inline AABB expandAABB(AABB a, AABB b)
     c.min = (Vec3){minFloat(a.min.x, b.min.x), minFloat(a.min.y, b.min.y), minFloat(a.min.z, b.min.z)};
     c.max = (Vec3){maxFloat(a.max.x, b.max.x), maxFloat(a.max.y, b.max.y), maxFloat(a.max.z, b.max.z)};
     return c;
+}
+
+static inline AABB growToIncludePoint(AABB a, Vec3 p)
+{
+    AABB b;
+    b.min = (Vec3){minFloat(a.min.x, p.x), minFloat(a.min.y, p.y), minFloat(a.min.z, p.z)};
+    b.max = (Vec3){maxFloat(a.max.x, p.x), maxFloat(a.max.y, p.y), maxFloat(a.max.z, p.z)};
+    return b;
+}
+
+static inline AABB expandAABBTriangle(AABB a, Triangle triangle)
+{
+    a = growToIncludePoint(a, triangle.a);
+    a = growToIncludePoint(a, triangle.b);
+    a = growToIncludePoint(a, triangle.c);
+    return a;
 }
