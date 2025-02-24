@@ -7,7 +7,7 @@ bool scatterMetal(void* this, const Ray rayIn, HitRecord* record, Color* attenua
     Vec3 reflected = reflect(rayIn.direction, record->normal);
 
     reflected = unitVector(reflected);
-    reflected = addVec3(reflected, mulVec3(randomUnitVector(), metal->fuzz));
+    reflected = vec3Add(reflected, vec3Mul(randomUnitVector(), metal->fuzz));
 
     rayScattered->origin = record->p; 
     rayScattered->direction = reflected;

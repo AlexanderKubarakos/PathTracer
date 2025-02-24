@@ -33,26 +33,26 @@ void cameraSetup(Camera* c)
     double viewportHeight = 2.0 * h * c->focusDist;
     double viewportWidth = viewportHeight * ((double)c->width / c->height);
 
-    Vec3 w = unitVector(subVec3(c->lookFrom, c->lookAt));
+    Vec3 w = unitVector(vec3Sub(c->lookFrom, c->lookAt));
     Vec3 u = unitVector(cross(c->up, w));
     Vec3 v = cross(w, u);
 
-    Vec3 viewportU = mulVec3(u, viewportWidth);
-    Vec3 viewportV = mulVec3(v, -viewportHeight);
+    Vec3 viewportU = vec3Mul(u, viewportWidth);
+    Vec3 viewportV = vec3Mul(v, -viewportHeight);
 
-    c->pixelDeltaU = divVec3(viewportU, c->width);
-    c->pixelDeltaV = divVec3(viewportV, c->height);
+    c->pixelDeltaU = vec3Div(viewportU, c->width);
+    c->pixelDeltaV = vec3Div(viewportV, c->height);
 
-    Vec3 viewportUpperLeft = subVec3(c->center, mulVec3(w, c->focusDist));
-    viewportUpperLeft = subVec3(viewportUpperLeft, divVec3(viewportU, 2));
-    viewportUpperLeft = subVec3(viewportUpperLeft, divVec3(viewportV, 2));
+    Vec3 viewportUpperLeft = vec3Sub(c->center, vec3Mul(w, c->focusDist));
+    viewportUpperLeft = vec3Sub(viewportUpperLeft, vec3Div(viewportU, 2));
+    viewportUpperLeft = vec3Sub(viewportUpperLeft, vec3Div(viewportV, 2));
 
-    c->pixel00 = addVec3(viewportUpperLeft, 
-    mulVec3(addVec3(c->pixelDeltaU, c->pixelDeltaV), 0.5));
+    c->pixel00 = vec3Add(viewportUpperLeft, 
+    vec3Mul(vec3Add(c->pixelDeltaU, c->pixelDeltaV), 0.5));
 
     double defocusRadius = c->focusDist * tan(degreeToRadian(c->defocusAngle / 2));
-    c->defocusDiskU = mulVec3(u, defocusRadius);
-    c->defocusDiskV = mulVec3(v, defocusRadius);
+    c->defocusDiskU = vec3Mul(u, defocusRadius);
+    c->defocusDiskV = vec3Mul(v, defocusRadius);
 }
 
 Camera* createCamera(int width, double aspectRatio, int sampleCount, int rayDepth, double vfov, double defocusAngle, double focusDistance)
@@ -112,16 +112,16 @@ Color rayColor(Scene* scene, int depth, Ray ray)
      if (!record.material->scatter(record.material, ray, &record, &attenuation, &scattered))
          return emissionColor;
 
-     Color scatterColor = mulVec3Vec3(rayColor(scene, depth-1, scattered), attenuation);
-     return addVec3(emissionColor, scatterColor);
+     Color scatterColor = vec3MulV(rayColor(scene, depth-1, scattered), attenuation);
+     return vec3Add(emissionColor, scatterColor);
 }
 
 static Vec3 defocusDiskSample(Camera* camera)
 {
     Vec3 p = randomInUnitDisc();
     Vec3 ret = camera->center;
-    ret = addVec3(ret, mulVec3(camera->defocusDiskU, p.x));
-    ret = addVec3(ret, mulVec3(camera->defocusDiskV, p.y));
+    ret = vec3Add(ret, vec3Mul(camera->defocusDiskU, p.x));
+    ret = vec3Add(ret, vec3Mul(camera->defocusDiskV, p.y));
     return ret;
 }
 
@@ -132,10 +132,10 @@ Ray sampleRay(Camera* camera, int x, int y)
     ray.origin = (camera->defocusAngle <= 0) ? camera->center : defocusDiskSample(camera);
 
     Vec3 pixelCenter = {0,0,0};
-    pixelCenter = addVec3(pixelCenter, camera->pixel00);
-    pixelCenter = addVec3(pixelCenter, mulVec3(camera->pixelDeltaU, x + randomDoubleRange(-0.5, 0.5)));
-    pixelCenter = addVec3(pixelCenter, mulVec3(camera->pixelDeltaV, y + randomDoubleRange(-0.5, 0.5)));
-    ray.direction = subVec3(pixelCenter, ray.origin);
+    pixelCenter = vec3Add(pixelCenter, camera->pixel00);
+    pixelCenter = vec3Add(pixelCenter, vec3Mul(camera->pixelDeltaU, x + randomDoubleRange(-0.5, 0.5)));
+    pixelCenter = vec3Add(pixelCenter, vec3Mul(camera->pixelDeltaV, y + randomDoubleRange(-0.5, 0.5)));
+    ray.direction = vec3Sub(pixelCenter, ray.origin);
     ray.invDirection = (Vec3){1/ray.direction.x, 1/ray.direction.y, 1/ray.direction.z};
 
     return ray;
@@ -178,10 +178,10 @@ void* renderTiles(void* data)
                     // Get random ray
                     ray = sampleRay(camera, x, y);
                     // Sum their colors
-                    pixelColor = addVec3(pixelColor, rayColor(scene, camera->rayDepth, ray));
+                    pixelColor = vec3Add(pixelColor, rayColor(scene, camera->rayDepth, ray));
                 }
 
-                pixelColor = mulVec3(pixelColor, colorRatio);
+                pixelColor = vec3Mul(pixelColor, colorRatio);
                 setPixel(image, x, y, &pixelColor); // set pixel is thread-safe
             }
         }

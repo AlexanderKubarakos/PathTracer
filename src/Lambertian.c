@@ -4,7 +4,7 @@
 bool scatterLambertian(void* this, const Ray rayIn, HitRecord* record, Color* attenuation, Ray* rayScattered)
 {
     Lambertian* lambertian = (Lambertian*)this;
-    Vec3 scatterDirection = addVec3(record->normal, randomUnitVector());
+    Vec3 scatterDirection = vec3Add(record->normal, randomUnitVector());
 
     if (nearZero(scatterDirection))
         scatterDirection = record->normal;

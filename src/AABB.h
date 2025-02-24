@@ -18,7 +18,7 @@ static float center(float min, float max)
 
 static inline Vec3 aabbBoundsSize(AABB* aabb)
 {
-    return subVec3(aabb->max, aabb->min);
+    return vec3Sub(aabb->max, aabb->min);
 }
 
 static inline float centerAxis(AABB* aabb, int axis)
@@ -34,6 +34,11 @@ static inline float centerAxis(AABB* aabb, int axis)
     }
 
     return center(aabb->min.x, aabb->max.x);
+}
+
+static inline AABB createAABBEmpty()
+{
+    return (AABB){(Vec3){1e30f, 1e30f, 1e30f}, (Vec3){-1e30f, -1e30f, -1e30f}};
 }
 
 static inline AABB createAABB(Vec3 min, Vec3 max)

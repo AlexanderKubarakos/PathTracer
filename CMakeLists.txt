@@ -11,6 +11,6 @@ if(MATH_LIBRARY)
     target_link_libraries(RayTracer ${THREADS})
 endif()
 find_package(SDL2 REQUIRED)
-include_directories(includes)
+include_directories(include)
 
 target_link_libraries(RayTracer ${SDL2_LIBRARIES})

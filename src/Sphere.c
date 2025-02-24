@@ -11,7 +11,7 @@ Hittable* createSphere(const Vec3 center, const double radius, Material* m)
     sphere->h.hitfunc = hitSphere;
     sphere->h.destroy = destroySphere;
     Vec3 radiusVector = (Vec3){radius, radius, radius};
-    sphere->h.aabb = createAABB(subVec3(center, radiusVector), addVec3(center, radiusVector));
+    sphere->h.aabb = createAABB(vec3Sub(center, radiusVector), vec3Add(center, radiusVector));
     sphere->h.material = m; 
     sphere->center = center;
     sphere->radius = radius;
@@ -28,7 +28,7 @@ bool hitSphere(void* this, const Ray r, double rayMin, double rayMax, HitRecord*
     Sphere* sphere = (Sphere*)this;
     const Vec3 circleCenter = sphere->center; 
     double radius = sphere->radius;
-    Vec3 oc = subVec3(circleCenter, r.origin);
+    Vec3 oc = vec3Sub(circleCenter, r.origin);
     double a = lengthSquared(r.direction);
     double h = dot(r.direction, oc);
     double c = lengthSquared(oc) - radius * radius;
@@ -52,7 +52,7 @@ bool hitSphere(void* this, const Ray r, double rayMin, double rayMax, HitRecord*
     record->t = root;
     record->p = rayAt(r, root);
     record->material = sphere->h.material;
-    Vec3 outwardNormal = divVec3(subVec3(record->p, circleCenter), radius);
+    Vec3 outwardNormal = vec3Div(vec3Sub(record->p, circleCenter), radius);
     setFrontFace(record, r, outwardNormal);
     return true;
 }

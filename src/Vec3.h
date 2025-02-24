@@ -10,26 +10,19 @@ typedef struct
     double z;
 } Vec3;
 
-/* TODO: Rewrite this stuff
-addVec3F
-addVec3
-subVec3F
-subVec3
-mulVec3F
-mulVec3
-*/
+#define vec3Print(vec) printf("[%f, %f, %f]", vec.x, vec.y, vec.z);
 
-static inline Vec3 addVec3(const Vec3 a, const Vec3 b) { return (Vec3){a.x + b.x, a.y + b.y, a.z + b.z};}
-static inline Vec3 subVec3(const Vec3 a, const Vec3 b) { return (Vec3){a.x - b.x, a.y - b.y, a.z - b.z};}
-static inline Vec3 mulVec3(const Vec3 a, double d) { return (Vec3){a.x*d, a.y*d, a.z*d};}
-static inline Vec3 mulVec3Vec3(const Vec3 a, const Vec3 b) {return (Vec3){a.x * b.x, a.y * b.y, a.z * b.z};}
-static inline Vec3 divVec3(const Vec3 a, double d) { return (Vec3){a.x/d, a.y/d, a.z/d};}
-static inline Vec3 negVec3(const Vec3 a) { return (Vec3){a.x * -1.0, a.y * -1.0, a.z * -1.0};}
+static inline Vec3 vec3Add(const Vec3 a, const Vec3 b) { return (Vec3){a.x + b.x, a.y + b.y, a.z + b.z};}
+static inline Vec3 vec3Sub(const Vec3 a, const Vec3 b) { return (Vec3){a.x - b.x, a.y - b.y, a.z - b.z};}
+static inline Vec3 vec3Mul(const Vec3 a, double d) { return (Vec3){a.x*d, a.y*d, a.z*d};}
+static inline Vec3 vec3MulV(const Vec3 a, const Vec3 b) {return (Vec3){a.x * b.x, a.y * b.y, a.z * b.z};}
+static inline Vec3 vec3Div(const Vec3 a, double d) { return (Vec3){a.x/d, a.y/d, a.z/d};}
+static inline Vec3 vec3Neg(const Vec3 a) { return (Vec3){a.x * -1.0, a.y * -1.0, a.z * -1.0};}
 
 static inline double lengthSquared(const Vec3 a) {return a.x*a.x + a.y*a.y + a.z*a.z;}
 static inline double dot(const Vec3 a, const Vec3 b) {return a.x*b.x +a.y*b.y + a.z*b.z;}
 static inline double length(const Vec3 a) {return sqrt(lengthSquared(a));}
-static inline Vec3 unitVector(const Vec3 a) {return divVec3(a, length(a));};
+static inline Vec3 unitVector(const Vec3 a) {return vec3Div(a, length(a));};
 
 static inline Vec3 cross(const Vec3 a, const Vec3 b) {
     return (Vec3){a.y * b.z - a.z * b.y,
@@ -45,7 +38,7 @@ static inline Vec3 randomUnitVector()
         Vec3 vec = randomVector(-1, 1);
         double lengthSq = lengthSquared(vec);
         if (1e-160 < lengthSq && lengthSq <= 1)
-            return divVec3(vec, sqrt(lengthSq));
+            return vec3Div(vec, sqrt(lengthSq));
     }
 }
 
@@ -57,18 +50,17 @@ static inline Vec3 randomInUnitDisc() {
     }
 }
 
-
 static inline Vec3 randomOnHemisphere(const Vec3 normal)
 {
     Vec3 vec = randomUnitVector();
     if (dot(vec, normal) > 0)
         return vec;
     else
-        return negVec3(vec);
+        return vec3Neg(vec);
 }
 
 static inline Vec3 reflect(const Vec3 v, const Vec3 n) {
-    return subVec3(v, mulVec3(mulVec3(n, dot(v,n)), 2));
+    return vec3Sub(v, vec3Mul(vec3Mul(n, dot(v,n)), 2));
 }
 
 static inline bool nearZero(const Vec3 a) 
@@ -80,8 +72,8 @@ static inline bool nearZero(const Vec3 a)
 
 static inline Vec3 refract(const Vec3 uv, const Vec3 n, double etaiOverEtat)
 {
-    double cosTheta = fmin(dot(negVec3(uv), n), 1.0);
-    Vec3 rOutPerp = mulVec3(addVec3(uv, mulVec3(n, cosTheta)), etaiOverEtat);
-    Vec3 rOutParallel = mulVec3(n, -sqrt(fabs(1.0 - lengthSquared(rOutPerp))));
-    return addVec3(rOutPerp, rOutParallel);
+    double cosTheta = fmin(dot(vec3Neg(uv), n), 1.0);
+    Vec3 rOutPerp = vec3Mul(vec3Add(uv, vec3Mul(n, cosTheta)), etaiOverEtat);
+    Vec3 rOutParallel = vec3Mul(n, -sqrt(fabs(1.0 - lengthSquared(rOutPerp))));
+    return vec3Add(rOutPerp, rOutParallel);
 }

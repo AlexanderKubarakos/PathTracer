@@ -42,10 +42,10 @@ void setFrontFace(HitRecord* record, const Ray ray, const Vec3 outwardNormal); /
 static inline bool triangleRay(Ray ray, Triangle tri, double rayMin, double rayMax, HitRecord* record)
 {
     ray.direction = unitVector(ray.direction); // Is this needed?
-    Vec3 edgeAB = subVec3(tri.b, tri.a);
-    Vec3 edgeAC = subVec3(tri.c, tri.a);
+    Vec3 edgeAB = vec3Sub(tri.b, tri.a);
+    Vec3 edgeAC = vec3Sub(tri.c, tri.a);
     Vec3 normal = cross(edgeAB, edgeAC);
-    Vec3 ao = subVec3(ray.origin, tri.a);
+    Vec3 ao = vec3Sub(ray.origin, tri.a);
     Vec3 dao = cross(ao, ray.direction);
 
     float det = -dot(ray.direction, normal);

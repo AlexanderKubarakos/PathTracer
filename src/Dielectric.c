@@ -17,7 +17,7 @@ bool scatterDielectric(void* this, const Ray rayIn, HitRecord* record, Color* at
     double refractionIndex = record->frontFace ? (1.0/mat->refractionIndex) : mat->refractionIndex;
 
     Vec3 unitDirection = unitVector(rayIn.direction);
-    double cosTheta = fmin(dot(negVec3(unitDirection), record->normal), 1.0);
+    double cosTheta = fmin(dot(vec3Neg(unitDirection), record->normal), 1.0);
     double sinTheta = sqrt(1.0 - cosTheta*cosTheta);
 
     Vec3 direction;
