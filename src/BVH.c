@@ -17,8 +17,9 @@ BVHNode createBVHNode()
 {
     BVHNode node;
     node.boundingBox = createAABBEmpty();
-    node.hittableList = createHittableList();
-    triangleListCreate(&node.triangleList, 1);
+    node.hittableList = malloc(sizeof(HittableList));
+    *node.hittableList = hittableListCreate();
+    node.triangleList = triangleListCreate(1);
     node.leftChild = NULL;
     node.rightChild = NULL;
     return node;
@@ -27,6 +28,9 @@ BVHNode createBVHNode()
 void deleteBVHNode(BVHNode* node)
 {
     // Add triangle list destruction here
+    hittableListDestory(node->hittableList);
+    free(node->hittableList);
+    triangleListDestroy(&node->triangleList);
 }
 
 float nodeCost(Vec3 size, int num)
@@ -63,6 +67,8 @@ float evaluateSplit(BVHNode* node, int axis, float pos)
     return cost > 0 ? cost : 1e30f;
 }
 
+// Choose how we should split our box, returns the axis, the position along that axis, and the best cost we could find
+// TODO: Should we try to split along all 3 axis for each triangle?
 void chooseSplit(BVHNode* parent, int* retSplitAxis, float* retSplitPos, float* retCost)
 {
     float bestCost = 1e30f;
@@ -119,7 +125,6 @@ void split(BVHNode* parent, int depth)
         // We are forced to be a leaf here, since we have hit max depth
         parent->leftChild = NULL;
         parent->rightChild = NULL;
-        printf("MAX DEPTH: I am a leaf with length: %i\n", parent->hittableList.size);
         return;
     }
 
@@ -137,12 +142,9 @@ void split(BVHNode* parent, int depth)
     float parentArea = areaAABB(parent->boundingBox);
     float parentCost = parent->triangleList.length * parentArea;
 
-    //printf("Cost: %f : Parent Cost: %f\n", cost, parentCost);
-
     if (cost >= parentCost) 
     {
-        // Don't split, this is now a leaf
-        //printf("%i, %i\n", parent->triangleList.length, depth);
+        // Don't split! This is now a leaf
         minTriangle = min(minTriangle, parent->triangleList.length);
         maxTriangle = max(maxTriangle, parent->triangleList.length);
         minNodeDepth = min(minNodeDepth, depth);
@@ -156,12 +158,12 @@ void split(BVHNode* parent, int depth)
     // It is better to split, so split into children
 
     // Split for Hittables
-    for (int i = 0; i < parent->hittableList.size; i++)
+    for (int i = 0; i < parent->hittableList->size; i++)
     {
-        int whatChild = centerAxis(&parent->hittableList.list[i]->aabb, axis) < splitPos;
+        int whatChild = centerAxis(&parent->hittableList->list[i]->aabb, axis) < splitPos;
         BVHNode* child = whatChild ? parent->leftChild : parent->rightChild;
-        addHittableList(&child->hittableList, parent->hittableList.list[i]);
-        child->boundingBox = expandAABB(child->boundingBox, parent->hittableList.list[i]->aabb);
+        addHittableList(&child->hittableList, parent->hittableList->list[i]);
+        child->boundingBox = expandAABB(child->boundingBox, parent->hittableList->list[i]->aabb);
     }
 
     //Split for Triangles
@@ -173,27 +175,11 @@ void split(BVHNode* parent, int depth)
         child->boundingBox = expandAABBTriangle(child->boundingBox, parent->triangleList.list[i]);
     }
 
-    //split(parent->leftChild, depth+1);
-    //split(parent->rightChild, depth+1);
-    //return;
+    // Finally recursivly split our children
 
-    if ((parent->leftChild->hittableList.size > 0 || parent->leftChild->triangleList.length > 0)
-        && (parent->rightChild->hittableList.size > 0 || parent->rightChild->triangleList.length > 0))
-    {
-        split(parent->leftChild, depth+1);
-        split(parent->rightChild, depth+1);
-    }
-    else
-    {
-        //printf("NO SPLIT: I am a leaf with: %i Hittables and %i Triangles, my split axis was: %i, my depth was %i\n", parent->hittableList.size, parent->triangleList.length, axis, depth);
-        
-        //AABB aabb = parent->boundingBox;
-        //printf("AABB bounds min(%f, %f, %f), max(%f, %f, %f)\n", aabb.min.x, aabb.min.y, aabb.min.z, aabb.max.x, aabb.max.y, aabb.max.z);
-        // TODO: delete children
-        // AKA, make our self a leaf
-        parent->leftChild = NULL;
-        parent->rightChild = NULL;
-    }   
+    split(parent->leftChild, depth+1);
+    split(parent->rightChild, depth+1);
+    return;
 }
 
 static Lambertian* mat;
@@ -219,7 +205,7 @@ BVHNode createBVH(HittableList* hittableList, TriangleList* triangleList)
     }
 
     BVHNode node = createBVHNode();
-    node.hittableList = *hittableList;
+    node.hittableList = hittableList;
     node.triangleList = *triangleList;
     node.boundingBox = aabb;
     
@@ -241,9 +227,9 @@ bool rayBVHTraversal(BVHNode* node, const Ray ray, double rayMin, double rayMax,
 
     if (node->leftChild == NULL && node->rightChild == NULL)
     {
-        for (int i = 0; i < node->hittableList.size; i++)
+        for (int i = 0; i < node->hittableList->size; i++)
         {
-            if(hit(node->hittableList.list[i], ray, rayMin, closestSoFar, &tempRecord))
+            if(hit(node->hittableList->list[i], ray, rayMin, closestSoFar, &tempRecord))
             {
                 hitAnything = true;
                 closestSoFar = tempRecord.t;

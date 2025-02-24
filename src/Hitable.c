@@ -15,13 +15,18 @@ void setFrontFace(HitRecord* record, const Ray ray, const Vec3 outwardNormal)
     record->normal = record->frontFace ? outwardNormal : vec3Neg(outwardNormal);
 }
 
-HittableList createHittableList()
+HittableList hittableListCreate()
 {
     HittableList h;
     h.list = malloc(sizeof(Hittable*) * 16);
     h.size = 0;
     h.internalLength = 16;
     return h;
+}
+
+void hittableListDestory(HittableList* list)
+{
+    free(list->list);
 }
 
 void addHittableList(HittableList* hittableList, Hittable* hittable)

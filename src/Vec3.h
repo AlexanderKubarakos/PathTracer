@@ -5,18 +5,18 @@
 
 typedef struct 
 {
-    double x;
-    double y;
-    double z;
+    float x;
+    float y;
+    float z;
 } Vec3;
 
 #define vec3Print(vec) printf("[%f, %f, %f]", vec.x, vec.y, vec.z);
 
 static inline Vec3 vec3Add(const Vec3 a, const Vec3 b) { return (Vec3){a.x + b.x, a.y + b.y, a.z + b.z};}
 static inline Vec3 vec3Sub(const Vec3 a, const Vec3 b) { return (Vec3){a.x - b.x, a.y - b.y, a.z - b.z};}
-static inline Vec3 vec3Mul(const Vec3 a, double d) { return (Vec3){a.x*d, a.y*d, a.z*d};}
+static inline Vec3 vec3Mul(const Vec3 a, float d) { return (Vec3){a.x*d, a.y*d, a.z*d};}
 static inline Vec3 vec3MulV(const Vec3 a, const Vec3 b) {return (Vec3){a.x * b.x, a.y * b.y, a.z * b.z};}
-static inline Vec3 vec3Div(const Vec3 a, double d) { return (Vec3){a.x/d, a.y/d, a.z/d};}
+static inline Vec3 vec3Div(const Vec3 a, float d) { return (Vec3){a.x/d, a.y/d, a.z/d};}
 static inline Vec3 vec3Neg(const Vec3 a) { return (Vec3){a.x * -1.0, a.y * -1.0, a.z * -1.0};}
 
 static inline double lengthSquared(const Vec3 a) {return a.x*a.x + a.y*a.y + a.z*a.z;}

@@ -12,8 +12,8 @@ Scene* createScene(int length, Color background)
         printf("Failed to allocate memory for scene\n");
     }
 
-    s->list = createHittableList();
-    triangleListCreate(&s->triangleList, 64);
+    s->list = hittableListCreate();
+    s->triangleList = triangleListCreate(16);
     s->background = background;
     return s;
 }

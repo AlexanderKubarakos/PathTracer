@@ -14,15 +14,6 @@ float triangleCenter(Triangle tri, int axis)
     return (tri.a.z + tri.b.z + tri.c.z) / 3.0;
 }
 
-void triangleListCreate(TriangleList* list, int initalSize)
-{
-    if (initalSize < 0)
-        return;
-    list->capacity = initalSize;
-    list->length = 0;
-    list->list = malloc(sizeof(Triangle) * list->capacity);
-}
-
 void triangleListAdd(TriangleList* list, Triangle tri)
 {
     if (list->length + 1 >= list->capacity)
@@ -32,4 +23,18 @@ void triangleListAdd(TriangleList* list, Triangle tri)
     }
     list->list[list->length] = tri;
     list->length++;
+}
+
+TriangleList triangleListCreate(int initalSize)
+{
+    TriangleList list;
+    list.capacity = initalSize;
+    list.length = 0;
+    list.list = malloc(sizeof(Triangle) * list.capacity);
+    return list;
+}
+
+void triangleListDestroy(TriangleList* list)
+{
+    free(list->list);
 }

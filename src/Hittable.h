@@ -31,7 +31,8 @@ typedef struct
     int internalLength;
 } HittableList;
 
-HittableList createHittableList();
+HittableList hittableListCreate();
+void hittableListDestory(HittableList* list);
 void addHittableList(HittableList* hittableList, Hittable* hittable);
 
 bool hit(Hittable* hittable, const Ray ray, double rayMin, double rayMax, HitRecord* record);

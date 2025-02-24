@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <time.h>
-#define TILE_SIZE 32
+#define TILE_SIZE 4
 
 // Data passed to each thread, describes what to render and where
 typedef struct {
@@ -184,12 +184,6 @@ void* renderTiles(void* data)
                 pixelColor = vec3Mul(pixelColor, colorRatio);
                 setPixel(image, x, y, &pixelColor); // set pixel is thread-safe
             }
-        }
-
-        // print progress
-        if (tile % 4 == 0 && tile != 0)
-        {
-            printf("Progress %.2f%%\n", (float)tile/xTileAmmount/yTileAmmount * 100.0f);
         }
     }
     return NULL;

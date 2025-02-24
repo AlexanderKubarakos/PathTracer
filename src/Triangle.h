@@ -15,8 +15,9 @@ typedef struct
     Triangle* list;
 } TriangleList;
 
-void triangleListCreate(TriangleList* list, int initalSize);
+TriangleList triangleListCreate(int initalSize);
 void triangleListAdd(TriangleList* list, Triangle tri);
+void triangleListDestroy(TriangleList* list);
 // TODO: destruction function
 
 #define iterateTriangleList(listLength, itr) for (int (itr) = 0; (itr) < (listLength); (itr)++)

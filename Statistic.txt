@@ -1,6 +1,6 @@
 Dragon Model - ~8k Triangles, 500 Samples, 800 Width
 No BVH: 
 BVH:
-BVH Surfrace Area Heurestic: 22 seconds
+BVH Surfrace Area Heurestic: 15-17 seconds
 With SEE AABB: 
 With SEE AABB & Triangle:
