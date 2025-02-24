@@ -106,7 +106,7 @@ int main(int argc, char** argv)
     const int width = 800;
     const double aspectRatio = 16.0/9.0;
     // Create camera to render scenes
-    Camera* camera = createCamera(width, aspectRatio,1, 50, 20, 0, 10.0);
+    Camera* camera = createCamera(width, aspectRatio,10, 50, 20, 0, 10.0);
     // Create scene of hittable objects
     Scene* scene = createScene(128, (Color){1,1,1});
     switch (2)
@@ -123,7 +123,7 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    RenderResult* result = renderScene(camera, scene, 10); // Start render
+    RenderResult* result = renderScene(camera, scene, 12); // Start render
 
     SDL_Surface* fromImage;
     fromImage = SDL_CreateRGBSurfaceFrom(result->image->data, camera->width,

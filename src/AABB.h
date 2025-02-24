@@ -18,7 +18,7 @@ static float center(float min, float max)
 
 static inline Vec3 aabbBoundsSize(AABB* aabb)
 {
-    return (Vec3){aabb->max.x - aabb->min.x, aabb->max.y - aabb->min.y, aabb->max.z - aabb->min.z};
+    return subVec3(aabb->max, aabb->min);
 }
 
 static inline float centerAxis(AABB* aabb, int axis)
@@ -86,4 +86,10 @@ static inline AABB expandAABBTriangle(AABB a, Triangle triangle)
     a = growToIncludePoint(a, triangle.b);
     a = growToIncludePoint(a, triangle.c);
     return a;
+}
+
+static inline double areaAABB(AABB a)
+{
+    Vec3 bounds = aabbBoundsSize(&a);
+    return bounds.x * bounds.y + bounds.y * bounds.z + bounds.x * bounds.z;
 }

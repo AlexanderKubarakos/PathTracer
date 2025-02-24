@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <time.h>
-#define TILE_SIZE 64
+#define TILE_SIZE 32
 
 // Data passed to each thread, describes what to render and where
 typedef struct {

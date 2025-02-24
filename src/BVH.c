@@ -3,12 +3,101 @@
 #include "Lambertian.h"
 #include "Triangle.h"
 #include <stdio.h>
-const static int maxDepth = 32;
+#include <stdlib.h>
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#define max(a, b) (((a) > (b)) ? (a) : (b))
 
-// rename this node? not parent?
+const static int maxDepth = 32;
+static int maxTriangle = 0;
+static int minTriangle = 1000000000;
+static int minNodeDepth = 100000000;
+static int maxNodeDepth = 0;
+
+float nodeCost(Vec3 size, int num)
+{
+    float halfArea = size.x * (size.y + size.z) + size.y * size.z;
+    return halfArea * num;
+}
+
+float evaluteSplit(BVHNode* node, int axis, float pos)
+{
+    AABB a = createAABB((Vec3){1e30f, 1e30f, 1e30f}, (Vec3){-1e30f,-1e30f,-1e30f});
+    AABB b = createAABB((Vec3){1e30f,1e30f,1e30f}, (Vec3){-1e30f,-1e30f,-1e30f});
+    int countA = 0;
+    int countB = 0;
+
+    // TODO: update for spherees
+
+    iterateTriangleList(node->triangleList.length, i)
+    {
+        Triangle* tri = node->triangleList.list + i;
+        if (triangleCenter(*tri, axis) < pos)
+        {
+            a = expandAABBTriangle(a, *tri);
+            countA++;
+        }
+        else 
+        {
+            b = expandAABBTriangle(b, *tri);
+            countB++;
+        }
+    } 
+
+    float cost = countA * areaAABB(a) + countB * areaAABB(b);
+    return cost > 0 ? cost : 1e30f;
+}
+
+void chooseSplit(BVHNode* parent, int* retSplitAxis, float* retSplitPos, float* retCost)
+{
+    float bestCost = 1e30f;
+    float bestPos = 0;
+    int bestAxis = 0;
+
+    for (int axis = 0; axis < 3; axis++)
+    {
+        float boundsStart;
+        float boundsEnds;
+        switch (axis)
+        {
+            case 0:
+                boundsStart = parent->boundingBox.min.x;
+                boundsEnds = parent->boundingBox.max.x;
+                break;
+            case 1:
+                boundsStart = parent->boundingBox.min.y;
+                boundsEnds = parent->boundingBox.max.y;
+            break;
+            case 2:
+                boundsStart = parent->boundingBox.min.z;
+                boundsEnds = parent->boundingBox.max.z;
+            break;
+        }
+
+        int splitChecks = 10;
+
+        for (int i = 0; i < splitChecks; i++)
+        {
+            float splitT = (i+1) / (splitChecks + 1.0f);
+            float pos = boundsStart + (boundsEnds - boundsStart) * splitT;
+            float cost = evaluteSplit(parent, axis, pos);
+
+            if (cost < bestCost)
+            {
+                bestCost = cost;
+                bestPos = pos;
+                bestAxis = axis;
+            }
+        }
+    }
+
+    *retSplitAxis = bestAxis;
+    *retCost = bestCost;
+    *retSplitPos = bestPos;
+    return;
+}
+
 void split(BVHNode* parent, int depth)
 {
-    //printf("Spliting a new node, depth = %i\n", depth);
     if (depth == maxDepth)
     {
         printf("MAX DEPTH: I am a leaf with length: %i\n", parent->hittableList.size);
@@ -23,14 +112,29 @@ void split(BVHNode* parent, int depth)
     triangleListCreate(&parent->leftChild->triangleList, 16);
     triangleListCreate(&parent->rightChild->triangleList, 16);
 
-    Vec3 bounds = aabbBoundsSize(&parent->boundingBox);
-    int splitAxis = bounds.x > maxFloat(bounds.y, bounds.z) ? 0 : bounds.y > bounds.z ? 1 : 2;
-    float splitPos = centerAxis(&parent->boundingBox, splitAxis);
+    int axis;
+    float splitPos;
+    float cost;
+    chooseSplit(parent, &axis, &splitPos, &cost);
 
+    // Calculate parents cost
+    float parentArea = areaAABB(parent->boundingBox);
+    float parentCost = parent->triangleList.length * parentArea;
+
+    if (cost >= parentCost) 
+    {
+        minTriangle = min(minTriangle, parent->triangleList.length);
+        maxTriangle = max(maxTriangle, parent->triangleList.length);
+        minNodeDepth = min(minNodeDepth, depth);
+        maxNodeDepth = max(maxNodeDepth, depth);
+        parent->leftChild = NULL;
+        parent->rightChild = NULL;
+        return;
+    }
     // Split for Hittables
     for (int i = 0; i < parent->hittableList.size; i++)
     {
-        int whatChild = centerAxis(&parent->hittableList.list[i]->aabb, splitAxis) < splitPos;
+        int whatChild = centerAxis(&parent->hittableList.list[i]->aabb, axis) < splitPos;
         BVHNode* child = whatChild ? parent->leftChild : parent->rightChild;
         addHittableList(&child->hittableList, parent->hittableList.list[i]);
         child->boundingBox = expandAABB(child->boundingBox, parent->hittableList.list[i]->aabb);
@@ -39,7 +143,7 @@ void split(BVHNode* parent, int depth)
     //Split for Triangles
     iterateTriangleList(parent->triangleList.length, i)
     {
-        int whatChild = triangleCenter(parent->triangleList.list[i], splitAxis) < splitPos;
+        int whatChild = triangleCenter(parent->triangleList.list[i], axis) < splitPos;
         BVHNode* child = whatChild ? parent->leftChild : parent->rightChild;
         triangleListAdd(&child->triangleList, parent->triangleList.list[i]);
         child->boundingBox = expandAABBTriangle(child->boundingBox, parent->triangleList.list[i]);
@@ -53,7 +157,8 @@ void split(BVHNode* parent, int depth)
     }
     else
     {
-        printf("NO SPLIT: I am a leaf with: %i Hittables and %i Triangles, my split axis was: %i, my depth was %i\n", parent->hittableList.size, parent->triangleList.length, splitAxis, depth);
+        //printf("NO SPLIT: I am a leaf with: %i Hittables and %i Triangles, my split axis was: %i, my depth was %i\n", parent->hittableList.size, parent->triangleList.length, axis, depth);
+        
         //AABB aabb = parent->boundingBox;
         //printf("AABB bounds min(%f, %f, %f), max(%f, %f, %f)\n", aabb.min.x, aabb.min.y, aabb.min.z, aabb.max.x, aabb.max.y, aabb.max.z);
         // TODO: delete children
@@ -92,8 +197,8 @@ BVHNode createBVH(HittableList* hittableList, TriangleList* triangleList)
     node.boundingBox = aabb;
     node.leftChild = NULL;
     node.rightChild = NULL;
-    printf("AABB bounds min(%f, %f, %f), max(%f, %f, %f)\n", aabb.min.x, aabb.min.y, aabb.min.z, aabb.max.x, aabb.max.y, aabb.max.z);
     split(&node,0);
+    printf("BVH Stats - Min Tri: %i - Max Tri %i - Min depth %i - Max depth %i\n", minTriangle, maxTriangle, minNodeDepth, maxNodeDepth);
     return node;
 }
 
