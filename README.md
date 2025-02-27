@@ -6,5 +6,6 @@ This is my personally developed CPU-based path tracer. It simulates the boucing 
 * Supports multiple models all loaded from **obj** files
 * Uses a **bounding volume heiarchy** (BVH) to spatial partition the scene and speed up rendering
 * Takes advantage of **SSE** on modern CPUs for ray-bounding box and soon ray-triangle intersections
+* Uses all your CPU cores for close to linear performance scalling
 
-![stanford dragon 8000 Triangle]("https://github.com/AlexanderKubarakos/PathTracer/img/dragon.png")
+![stanford dragon 8000 Triangle]("https://github.com/AlexanderKubarakos/PathTracer/dragon.png")
