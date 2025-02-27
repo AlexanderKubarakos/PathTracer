@@ -9,7 +9,22 @@ This is my personally developed CPU-based path tracer. It simulates the boucing 
 * Uses all your CPU cores for close to linear performance scalling
 
 # Examples:
-Standford Dragon - 8000 triangles
-![stanford dragon 8000 Triangle](https://github.com/AlexanderKubarakos/PathTracer/blob/master/dragon.png "stanford dragon 8000 Triangle")
-Sphere Scene - 300 Spheres
-![sphere scene](https://github.com/AlexanderKubarakos/PathTracer/blob/master/spheres.png "sphere scene")
+## Standford Dragon - 8000 triangles
+<p align="center">
+  <img src="./dragon.png" alt="Size Limit CLI" width="600">
+</p>
+
+## Sphere Scene - 300 Spheres
+<p align="center">
+  <img src="./sphere.png" alt="Size Limit CLI" width="600">
+</p>
+
+# Performace:
+All rendered with 500 samples at 1400x800
+
+| Model  | Naive | BVH | SAH<sup>1</sup> |
+| ------------- | ------------- | ------------- | ------------- |
+| Standford Dragon  | 10:27 | 92s | 75s |
+| Sphere Scene  | 5:15 | 112s | 102s |
+
+<sup>1</sup> is a BVH constructed with a Surface Area Heuristic (SAH)
