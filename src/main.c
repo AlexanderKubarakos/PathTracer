@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 
     // Image generation
 
-    const int width = 800;
+    const int width = 1600;
     const double aspectRatio = 16.0/9.0;
     // Create camera to render scenes
     Camera* camera = createCamera(width, aspectRatio, SAMPLE, BONCE_DEPTH, 20, 0, 10.0);

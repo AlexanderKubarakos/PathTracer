@@ -35,10 +35,11 @@ Model* loadOBJModel(const char* fileLocation)
 
     Model* model = malloc(sizeof(Model));
 
-    Vec3* vertexList = malloc(sizeof(Vec3) * 10000);
+    Vec3* vertexList = malloc(sizeof(Vec3) * 1000000);
     int vertex = 0;
 
-    model->triangles = malloc(sizeof(Triangle) * 10000);
+
+    model->triangles = malloc(sizeof(Triangle) * 1000000);
     model->triangleCount = 0;
 
     char data[128];
@@ -73,6 +74,8 @@ Model* loadOBJModel(const char* fileLocation)
         }
     }
 
+    printf("Vertex: %i\n", vertex);
+    printf("Face %i\n", model->triangleCount);
     //TEMP
     model->h.hitfunc = &modelHit;
     model->h.material = (Material*)createLambertian((Color){0.2,0.2,0.2});

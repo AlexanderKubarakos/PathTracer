@@ -46,7 +46,7 @@ static inline AABB createAABB(Vec3 min, Vec3 max)
     return (AABB){.min = min, .max = max};
 }
 
-static inline bool rayAABBIntersection(const AABB box, const Ray ray, const double t)
+static inline double rayAABBIntersection(const AABB box, const Ray ray, const double t)
 {
     double tx1 = (box.min.x - ray.origin.x)*ray.invDirection.x;
     double tx2 = (box.max.x - ray.origin.x)*ray.invDirection.x;
@@ -66,7 +66,9 @@ static inline bool rayAABBIntersection(const AABB box, const Ray ray, const doub
     tmin = maxFloat(tmin, minFloat(tz1, tz2));
     tmax = minFloat(tmax, maxFloat(tz1, tz2));
 
-    return tmax >= maxFloat(0.0, tmin) && tmin < t;
+    if(tmax >= maxFloat(0.0, tmin) && tmin < t)
+        return t;
+    return 1e30;
 } 
 
 static inline AABB expandAABB(AABB a, AABB b)

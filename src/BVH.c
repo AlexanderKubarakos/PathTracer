@@ -138,6 +138,8 @@ void split(BVHNode* parent, int depth)
     float cost;
     chooseSplit(parent, &axis, &splitPos, &cost);
 
+    parent->splitAxis = axis;
+
     // Calculate parents cost
     float parentArea = areaAABB(parent->boundingBox);
     float parentCost = parent->triangleList.length * parentArea;
@@ -162,7 +164,7 @@ void split(BVHNode* parent, int depth)
     {
         int whatChild = centerAxis(&parent->hittableList->list[i]->aabb, axis) < splitPos;
         BVHNode* child = whatChild ? parent->leftChild : parent->rightChild;
-        addHittableList(&child->hittableList, parent->hittableList->list[i]);
+        addHittableList(child->hittableList, parent->hittableList->list[i]);
         child->boundingBox = expandAABB(child->boundingBox, parent->hittableList->list[i]->aabb);
     }
 
@@ -221,8 +223,8 @@ bool rayBVHTraversal(BVHNode* node, const Ray ray, double rayMin, double rayMax,
     bool hitAnything = false;
     double closestSoFar = rayMax;
 
-    bool boxHit = rayAABBIntersection(node->boundingBox, ray, rayMax);
-    if (!boxHit)
+    double boxHit = rayAABBIntersection(node->boundingBox, ray, rayMax);
+    if (boxHit == 1e30)
         return false;
 
     if (node->leftChild == NULL && node->rightChild == NULL)
@@ -250,14 +252,30 @@ bool rayBVHTraversal(BVHNode* node, const Ray ray, double rayMin, double rayMax,
     }
     else
     {
-        if(rayBVHTraversal(node->leftChild, ray, rayMin, rayMax, record))
+        bool dirNeg[3] = {ray.direction.x < 0,ray.direction.y < 0,ray.direction.z < 0};
+        if(dirNeg[node->splitAxis])
         {
-            hitAnything = true;
-            closestSoFar = record->t;
+            if(rayBVHTraversal(node->rightChild, ray, rayMin, rayMax, record))
+            {
+                hitAnything = true;
+                closestSoFar = record->t;
+            }
+            if(rayBVHTraversal(node->leftChild, ray, rayMin, closestSoFar, record))
+            {
+                hitAnything = true;
+            }    
         }
-        if(rayBVHTraversal(node->rightChild, ray, rayMin, closestSoFar, record))
+        else
         {
-            hitAnything = true;
+            if(rayBVHTraversal(node->leftChild, ray, rayMin, rayMax, record))
+            {
+                hitAnything = true;
+                closestSoFar = record->t;
+            }
+            if(rayBVHTraversal(node->rightChild, ray, rayMin, closestSoFar, record))
+            {
+                hitAnything = true;
+            }    
         }
     }
 

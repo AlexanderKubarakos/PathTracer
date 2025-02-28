@@ -33,7 +33,7 @@ void sphereScene(Scene* scene, Camera* camera, int factor)
                     addHittable(scene, createSphere(center, 0.2, sphere_material));
                 } else {
                     // glass
-                    sphere_material = (Material*)createDielectric(1.5);
+                    sphere_material = (Material*)createDiffuseLight((Color){1,1,1});
                     addHittable(scene, createSphere(center, 0.2, sphere_material));
                 }
             }
@@ -72,12 +72,22 @@ void sphereScene2(Scene* scene, Camera* camera)
     addHittable(scene,createSphere((Vec3){2,1.2,-1}, 0.75, white));
 }
 
-void dragonScene(Scene* scene, Camera* camera)
+void smallDragonScene(Scene* scene, Camera* camera)
 {
     scene->background = (Color){1,1,1};
     lookAt(camera, (Vec3){-3,0.2,-1}, (Vec3){0,0,0}, (Vec3){0,1,0});
     
     Model* model = loadOBJModel("models/SmallDragon.obj");
+    sceneAddModel(scene, model);
+}
+
+
+void largeDragonScene(Scene* scene, Camera* camera)
+{
+    scene->background = (Color){1,1,1};
+    lookAt(camera, (Vec3){-3,0.2,-1}, (Vec3){0,0,0}, (Vec3){0,1,0});
+    
+    Model* model = loadOBJModel("models/LargeDragon.obj");
     sceneAddModel(scene, model);
 }
 
@@ -87,6 +97,7 @@ void selectScene(Scene* scene, Camera* camera, int id)
     {
         case 0: sphereScene(scene, camera, 7); break;
         case 1: sphereScene2(scene, camera); break;
-        case 2: dragonScene(scene, camera); break;
+        case 2: smallDragonScene(scene, camera); break;
+        case 3: largeDragonScene(scene, camera); break;
     }
 }
