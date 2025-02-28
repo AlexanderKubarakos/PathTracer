@@ -9,7 +9,6 @@ typedef struct BVHNode BVHNode;
 struct BVHNode 
 {
     AABB boundingBox; 
-    HittableList* hittableList; 
     TriangleList triangleList; // 16
     BVHNode* leftChild; // 8
     BVHNode* rightChild; // 8
@@ -19,5 +18,5 @@ struct BVHNode
 
 //#define a sizeof(BVHNode)
 
-BVHNode createBVH(HittableList* hittableList, TriangleList* triangleList);
+BVHNode createBVH(TriangleList* triangleList);
 bool rayBVHTraversal(BVHNode* node, const Ray ray, double rayMin, double rayMax, HitRecord* record);

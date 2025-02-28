@@ -7,8 +7,8 @@
 typedef struct
 {
     HittableList list;
-    TriangleList triangleList;
-    BVHNode bvh;
+    Model* models;
+    int modelCount;
     Color background;
 } Scene;
 

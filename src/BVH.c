@@ -17,8 +17,6 @@ BVHNode createBVHNode()
 {
     BVHNode node;
     node.boundingBox = createAABBEmpty();
-    node.hittableList = malloc(sizeof(HittableList));
-    *node.hittableList = hittableListCreate();
     node.triangleList = triangleListCreate(1);
     node.leftChild = NULL;
     node.rightChild = NULL;
@@ -28,8 +26,6 @@ BVHNode createBVHNode()
 void deleteBVHNode(BVHNode* node)
 {
     // Add triangle list destruction here
-    hittableListDestory(node->hittableList);
-    free(node->hittableList);
     triangleListDestroy(&node->triangleList);
 }
 
@@ -95,7 +91,7 @@ void chooseSplit(BVHNode* parent, int* retSplitAxis, float* retSplitPos, float* 
             break;
         }
 
-        int splitChecks = 100;
+        int splitChecks = 300;
 
         for (int i = 0; i < splitChecks; i++)
         {
@@ -159,15 +155,6 @@ void split(BVHNode* parent, int depth)
 
     // It is better to split, so split into children
 
-    // Split for Hittables
-    for (int i = 0; i < parent->hittableList->size; i++)
-    {
-        int whatChild = centerAxis(&parent->hittableList->list[i]->aabb, axis) < splitPos;
-        BVHNode* child = whatChild ? parent->leftChild : parent->rightChild;
-        addHittableList(child->hittableList, parent->hittableList->list[i]);
-        child->boundingBox = expandAABB(child->boundingBox, parent->hittableList->list[i]->aabb);
-    }
-
     //Split for Triangles
     iterateTriangleList(parent->triangleList.length, i)
     {
@@ -184,21 +171,14 @@ void split(BVHNode* parent, int depth)
     return;
 }
 
-static Lambertian* mat;
-
-BVHNode createBVH(HittableList* hittableList, TriangleList* triangleList)
+BVHNode createBVH(TriangleList* triangleList)
 {
-    // TODO REMOVE
-    mat = createLambertian((Color){0.2,0.2,0.2});
-    if (hittableList->size == 0 && triangleList->length == 0)
+    _mm_setcsr(_mm_getcsr() | (_MM_FLUSH_ZERO_ON | _MM_DENORMALS_ZERO_ON));
+
+    if (triangleList->length == 0)
         return (BVHNode){};
 
     AABB aabb = createAABB((Vec3){1e30f, 1e30f, 1e30f}, (Vec3){-1e30f, -1e30f, -1e30f});
-    // Handle Hittables
-    for (int i = 0; i < hittableList->size; i++)
-    {
-        aabb = expandAABB(aabb, hittableList->list[i]->aabb);
-    }
 
     // Handle Triangles
     iterateTriangleList(triangleList->length, i)
@@ -207,7 +187,6 @@ BVHNode createBVH(HittableList* hittableList, TriangleList* triangleList)
     }
 
     BVHNode node = createBVHNode();
-    node.hittableList = hittableList;
     node.triangleList = *triangleList;
     node.boundingBox = aabb;
     
@@ -229,16 +208,6 @@ bool rayBVHTraversal(BVHNode* node, const Ray ray, double rayMin, double rayMax,
 
     if (node->leftChild == NULL && node->rightChild == NULL)
     {
-        for (int i = 0; i < node->hittableList->size; i++)
-        {
-            if(hit(node->hittableList->list[i], ray, rayMin, closestSoFar, &tempRecord))
-            {
-                hitAnything = true;
-                closestSoFar = tempRecord.t;
-                *record = tempRecord;
-            }
-        }
-        
         iterateTriangleList(node->triangleList.length, i)
         {
             if (triangleRay(ray, node->triangleList.list[i], rayMin, closestSoFar, &tempRecord))
@@ -246,7 +215,6 @@ bool rayBVHTraversal(BVHNode* node, const Ray ray, double rayMin, double rayMax,
                 hitAnything = true;
                 closestSoFar = tempRecord.t;
                 *record = tempRecord;
-                record->material = (Material*)mat;
             }
         }
     }

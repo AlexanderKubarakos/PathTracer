@@ -4,11 +4,18 @@
 #include "Ray.h"
 #include "KubsMath.h"
 #include "Triangle.h"
-
+#include <immintrin.h>
 typedef struct 
 {
-    Vec3 min;
-    Vec3 max;
+    union {
+        struct {Vec3 min; int dummy1;};
+        __m128 minIntrinsic;
+    };
+    
+    union {
+        struct {Vec3 max; int dummy2;};
+        __m128 maxIntrinsic;
+    };
 } AABB;
 
 static float center(float min, float max)
@@ -38,7 +45,7 @@ static inline float centerAxis(AABB* aabb, int axis)
 
 static inline AABB createAABBEmpty()
 {
-    return (AABB){(Vec3){1e30f, 1e30f, 1e30f}, (Vec3){-1e30f, -1e30f, -1e30f}};
+    return (AABB){.min=(Vec3){1e30f, 1e30f, 1e30f}, .max=(Vec3){-1e30f, -1e30f, -1e30f}};
 }
 
 static inline AABB createAABB(Vec3 min, Vec3 max)
@@ -48,26 +55,15 @@ static inline AABB createAABB(Vec3 min, Vec3 max)
 
 static inline double rayAABBIntersection(const AABB box, const Ray ray, const double t)
 {
-    double tx1 = (box.min.x - ray.origin.x)*ray.invDirection.x;
-    double tx2 = (box.max.x - ray.origin.x)*ray.invDirection.x;
+    __m128 t1 = _mm_mul_ps(_mm_sub_ps(box.minIntrinsic,ray.O),ray.ID );
+    __m128 t2 = _mm_mul_ps(_mm_sub_ps(box.maxIntrinsic,ray.O),ray.ID );
+    __m128 vmax4 = _mm_max_ps(t1,t2);
+    __m128 vmin4 = _mm_min_ps(t1,t2);
+    float tmax = minFloat(vmax4[0],minFloat(vmax4[1],vmax4[2]));
+    float tmin = maxFloat(vmin4[0],maxFloat(vmin4[1],vmin4[2]));
 
-    double tmin = minFloat(tx1, tx2);
-    double tmax = maxFloat(tx1, tx2);
-
-    double ty1 = (box.min.y - ray.origin.y)*ray.invDirection.y;
-    double ty2 = (box.max.y - ray.origin.y)*ray.invDirection.y;
-
-    tmin = maxFloat(tmin, minFloat(ty1, ty2));
-    tmax = minFloat(tmax, maxFloat(ty1, ty2));
-
-    double tz1 = (box.min.z - ray.origin.z)*ray.invDirection.z;
-    double tz2 = (box.max.z - ray.origin.z)*ray.invDirection.z;
-
-    tmin = maxFloat(tmin, minFloat(tz1, tz2));
-    tmax = minFloat(tmax, maxFloat(tz1, tz2));
-
-    if(tmax >= maxFloat(0.0, tmin) && tmin < t)
-        return t;
+    if (tmax >= maxFloat(0.0, tmin) && tmin < t)
+        return tmin;
     return 1e30;
 } 
 

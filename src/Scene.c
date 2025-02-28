@@ -13,7 +13,7 @@ Scene* createScene(int length, Color background)
     }
 
     s->list = hittableListCreate();
-    s->triangleList = triangleListCreate(16);
+    s->models = malloc(sizeof(Model) * 16);
     s->background = background;
     return s;
 }
@@ -34,19 +34,27 @@ void addHittable(Scene* scene, Hittable* hittable)
 
 void sceneAddModel(Scene* scene, Model* model)
 {
-    for (int i = 0; i < model->triangleCount; i++)
-    {
-        triangleListAdd(&scene->triangleList, model->triangles[i]);
-    }
+    scene->models[scene->modelCount++] = *model;
 }
 
 void buildSceneBVH(Scene* scene)
 {
-    scene->bvh = createBVH(&scene->list, &scene->triangleList);
+    //scene->bvh = createBVH(&scene->list, &scene->triangleList);
 }
 
 // Try to hit any of the hittable objects in the scene
 bool hitScene(Scene* scene, const Ray ray, double rayMin, double rayMax, HitRecord* record)
 {
-    return rayBVHTraversal(&scene->bvh, ray, rayMin, rayMax, record);
+    HitRecord tempRecord;
+    bool hitAnything = false;
+    double closestSoFar = 1e30;
+    for (int i = 0; i < scene->modelCount; i++)
+        if (rayBVHTraversal(&scene->models[i].bvh, ray, rayMin, closestSoFar, &tempRecord))
+        {
+            hitAnything = true;
+            closestSoFar = record->t;
+            *record = tempRecord;
+            record->material = scene->models[i].material;
+        }
+    return hitAnything;
 }

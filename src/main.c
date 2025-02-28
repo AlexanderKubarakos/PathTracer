@@ -21,7 +21,7 @@
 #include "Model.h"
 #include "SceneSelector.h"
 
-#define SAMPLE 500
+#define SAMPLE 100
 #define BONCE_DEPTH 50
 
 int main(int argc, char** argv)
