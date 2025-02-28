@@ -1,12 +1,12 @@
 # PathTracer
 
-This is my personally developed CPU-based path tracer. It simulates the boucing of light around a scene of objects to produce beautiful images.
+This is my personally developed CPU-based path tracer. It simulates the bouncing of light around a scene of objects to produce beautiful images.
 
-* Written completly in **C**, no outside libraries used other than SDL for display of the final image
+* Written completely in **C**, no outside libraries used other than SDL for display of the final image
 * Supports multiple models all loaded from **obj** files
-* Uses a **bounding volume heiarchy** (BVH) to spatial partition the scene and speed up rendering
+* Uses a **bounding volume hierarchy** (BVH) to spatial partition the scene and speed up rendering
 * Takes advantage of **SSE** on modern CPUs for ray-bounding box and soon ray-triangle intersections
-* Uses all your CPU cores for close to linear performance scalling
+* Uses all your CPU cores for close to linear performance scaling
 
 # Examples:
 ## Standford Dragon - 8000 triangles
@@ -19,7 +19,7 @@ This is my personally developed CPU-based path tracer. It simulates the boucing 
   <img src="./sphere.png" alt="Size Limit CLI" width="600">
 </p>
 
-# Performace:
+# Performance:
 All rendered with 500 samples at 1400x800
 
 | Model  | Naive | BVH | SAH<sup>1</sup> |
